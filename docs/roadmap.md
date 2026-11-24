@@ -6,8 +6,8 @@ Una fase se cierra solo cuando se cumple su criterio de salida.
 
 | Fase | Contenido | Criterio de salida |
 |------|-----------|--------------------|
-| F0 | Base del repo: workspace, toolchain, rustfmt/clippy, `deny.toml`, `docs/deps.md`, test de arquitectura, CI, traslado del prototipo | `cargo build`, `clippy`, `fmt` y `test` en verde en CI; `docs/` completo |
-| F1 | Núcleo: tipos de dominio, bus de eventos, configuración y logging | Dominio sin dependencias de I/O y con pruebas |
+| F0 | Base del repo: workspace, toolchain, rustfmt/clippy, `deny.toml`, `docs/deps.md`, `cargo xtask docs-check`, CI, traslado del prototipo | `cargo build`, `clippy`, `fmt`, `test` y `docs-check` en verde en CI; `docs/` completo |
+| F1 | Núcleo: tipos de dominio, bus de eventos, configuración y logging; test de dirección de dependencias entre crates | Dominio sin dependencias de I/O y con pruebas; el test falla si un crate depende en sentido contrario |
 | F2 | Plataformas: migrar Kick desde el prototipo y añadir Twitch; presupuesto de suscripciones por plataforma | Ambas plataformas entregan eventos al engine; `docs/architecture/` documenta cuántas suscripciones abre cada una |
 | F3 | Chat unificado (1, 2 o todas las plataformas), comandos, filtros y antispam | Mismo flujo de chat que MiniKick con pruebas por plataforma |
 | F4 | TTS | Motor(es) elegidos mediante ADR y detrás de un trait |

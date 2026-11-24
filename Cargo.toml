@@ -1,0 +1,16 @@
+[workspace]
+resolver = "3"
+members = ["xtask"]
+# Los prototipos tienen su propio Cargo.lock y no forman parte del workspace.
+exclude = ["prototypes/kick-console"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+publish = false
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

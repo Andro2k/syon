@@ -51,4 +51,4 @@ incluya su `Cargo.toml`.
 - Cambiar una librería con errores toca un único adaptador.
 - Más crates implican más configuración inicial; se compensa creándolos solo
   cuando una fase los necesita (YAGNI).
-- Un test de arquitectura verificará la dirección de dependencias (F0).
+- Un test de arquitectura verificará la dirección de dependencias; llega en F1 con el primer crate de dominio, porque antes no hay dependencias entre crates que comprobar.
