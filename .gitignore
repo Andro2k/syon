@@ -1,3 +1,19 @@
-/target
+# Rust (target/ sin ancla para cubrir también los paquetes de prototypes/)
+target/
+**/*.rs.bk
+
+# Secretos y sesiones locales (nunca versionar)
 .env
+.env.*
+!.env.example
 .kick_tokens.json
+*.tokens.json
+
+# Logs
+*.log
+
+# Editores y sistema operativo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
