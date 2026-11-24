@@ -1,10 +1,19 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+# Rust
+/target/
+**/*.rs.bk
 
-# Virtual environments
-.venv
+# Secretos y sesiones locales (nunca versionar)
+.env
+.env.*
+!.env.example
+.kick_tokens.json
+*.tokens.json
+
+# Logs
+*.log
+
+# Editores y sistema operativo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
