@@ -16,6 +16,9 @@ syon-app = { path = "crates/syon-app" }
 # Dependencias externas (ADR-0004): cada una tiene su fila en docs/deps.md.
 tokio = { version = "1", default-features = false, features = ["sync"] }
 log = "0.4"
+# Formato de settings.toml (ADR-0008): solo lo usa syon-storage-toml; syon-app no depende de serde.
+serde = { version = "1", features = ["derive"] }
+toml = { version = "1", default-features = false, features = ["std", "serde", "parse", "display"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

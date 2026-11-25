@@ -23,15 +23,16 @@ para cualquier persona o herramienta que cambie el repositorio.
 
 ## Disposición de crates
 
-Estado: F1 en curso. `syon-domain` y `syon-app` ya existen; los otros dos se crean en los
+Estado: F1 en curso. `syon-domain`, `syon-app`, `syon-engine` (bus de eventos) y
+`syon-storage-toml` ya existen; el resto de `syon-engine` (rutas, logging) se completa en los
 parches de implementación del [diseño 001](docs/designs/001-nucleo-dominio-eventos.md).
 
 ```text
 crates/
   syon-domain/          tipos puros: eventos, usuarios, marca de tiempo (sin I/O ni async)
   syon-app/             puertos (traits) y casos de uso
-  syon-storage-toml/    adaptador de ajustes sobre TOML
-  syon-engine/          ensambla todo: bus, rutas, logging; corre sin interfaz
+  syon-storage-toml/    adaptador de ajustes sobre TOML (settings.toml, escritura atómica)
+  syon-engine/          ensambla todo: bus, rutas, logging; corre sin interfaz (hoy, el bus)
 xtask/                  tareas de mantenimiento (cargo xtask)
 ```
 

@@ -13,7 +13,7 @@ puede nombrar adaptadores concretos (ver
 - `SubscriberStats`: nombre, capacidad, eventos en cola y descartados de cada consumidor.
 
 Llegarán en F1 las rutas de datos, el logging con archivo acotado y la conexión de
-`syon-storage-toml`.
+[`syon-storage-toml`](../syon-storage-toml/README.md).
 
 ## Qué no hace
 
