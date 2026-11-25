@@ -3,8 +3,16 @@ use std::{
     fs::{self, File},
     io::{self, Write},
     path::{Path, PathBuf},
+    sync::{Mutex, PoisonError},
 };
 use syon_app::{Settings, SettingsError, SettingsStore};
+
+/// Serializa los guardados de todo el proceso. Dos `save` a la vez usarían el mismo temporal
+/// (`settings.toml.<pid>.tmp`) y uno encontraría que el otro ya lo renombró. Además, dos
+/// `rename` simultáneos sobre el mismo destino pueden fallar según la plataforma (no se ha
+/// verificado en Windows). Guardar es raro y el archivo es pequeño, así que un cierre único
+/// es más simple que un temporal distinto por llamada.
+static SAVE_LOCK: Mutex<()> = Mutex::new(());
 
 /// Guarda los ajustes en un archivo TOML cuya ruta recibe por constructor: este tipo no
 /// consulta el sistema operativo para ubicarla (diseño 001, sección 7).
@@ -70,6 +78,7 @@ impl SettingsStore for TomlSettingsStore {
 
     fn save(&self, settings: &Settings) -> Result<(), SettingsError> {
         let content = format::render(settings).map_err(|error| self.invalid(error))?;
+        let _guard = SAVE_LOCK.lock().unwrap_or_else(PoisonError::into_inner);
         if let Some(parent) = self.path.parent().filter(|p| !p.as_os_str().is_empty()) {
             fs::create_dir_all(parent).map_err(|error| self.io_error(error))?;
         }
@@ -281,6 +290,35 @@ mod tests {
         store.save(&Settings::default()).unwrap();
         store.save(&debug_settings()).unwrap();
         assert_eq!(store.load().unwrap(), debug_settings());
+    }
+
+    #[test]
+    fn varios_guardados_a_la_vez_no_fallan_ni_dejan_temporales() {
+        let dir = TempDir::new();
+        // Dos instancias sobre el mismo archivo, como harían dos partes de la aplicación.
+        let stores = [
+            TomlSettingsStore::new(dir.file()),
+            TomlSettingsStore::new(dir.file()),
+        ];
+        for _ in 0..25 {
+            let results: Vec<_> = std::thread::scope(|scope| {
+                let handles: Vec<_> = (0..8)
+                    .map(|n| {
+                        let store = &stores[n % 2];
+                        scope.spawn(move || {
+                            let mut settings = Settings::default();
+                            settings.logging.level = [LogLevel::Warn, LogLevel::Debug][n % 2];
+                            store.save(&settings)
+                        })
+                    })
+                    .collect();
+                handles.into_iter().map(|h| h.join().unwrap()).collect()
+            });
+            assert!(results.iter().all(Result::is_ok), "{results:?}");
+        }
+        let level = stores[0].load().unwrap().logging.level;
+        assert!(matches!(level, LogLevel::Warn | LogLevel::Debug));
+        assert_eq!(fs::read_dir(&dir.0).unwrap().count(), 1);
     }
 
     #[test]

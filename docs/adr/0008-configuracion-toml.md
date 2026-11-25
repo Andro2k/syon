@@ -36,6 +36,12 @@ corromper el archivo (diseño 001, secciones 5 y 7).
    - `save` crea la carpeta si falta, escribe un temporal en la misma carpeta (`settings.toml.<pid>.tmp`),
      lo sincroniza a disco y lo renombra sobre el destino. Si algo falla, borra el temporal y el archivo
      anterior queda intacto.
+   - **Los guardados del proceso se serializan** con un cierre único: `SettingsStore` exige `Send + Sync`,
+     y sin él dos `save` simultáneos (de hilos o de instancias distintas sobre el mismo archivo) comparten
+     el nombre del temporal y uno falla con `NotFound` (reproducido con 8 hilos: fallaron 350 de 400
+     guardados). Gana el último que entra. Se descartó un temporal distinto por llamada porque no evita
+     dos `rename` simultáneos sobre el mismo destino, que según la plataforma pueden fallar (no se ha
+     verificado en Windows; lo ejercita la CI).
 5. **Sin `thiserror`:** los errores son los enums `Io` e `Invalid` de `syon-app`, con `Display` escrito a mano.
 6. **La ruta se recibe por constructor** (`TomlSettingsStore::new`). Dónde vive el archivo lo decide
    `syon-engine` (ADR 0009); el adaptador no consulta el sistema operativo.

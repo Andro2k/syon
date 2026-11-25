@@ -24,6 +24,15 @@ el trabajo sin depender de una conversación.
 - La prueba de `AppPaths` en Windows (`%APPDATA%`, `%LOCALAPPDATA%`) solo corre en el trabajo de Windows de la CI: confirmar que pasó al aplicar el parche 5.
 - Tras un `SettingsError::Invalid`, el engine no debe guardar valores por defecto sobre el archivo; lo decide el parche que conecte `syon-storage-toml` con el engine.
 - `chrono` sigue en el prototipo con su aviso ignorado en `deny.toml`; se va con el prototipo.
+- Confirmar en la pestaña Actions que el job de Windows pasa, en particular la prueba de `AppPaths`
+  que solo se compila allí y la de guardados simultáneos del almacén TOML.
+- Decisión del autor: rechazar o avisar al guardar si el `schema_version` del archivo es mayor que
+  `SCHEMA_VERSION`. Hoy un `save` de una versión vieja reescribe el archivo sin las claves que no
+  conoce y deja su versión (ADR 0008, consecuencias).
+- Al conectar el engine con `SettingsStore`: tras un `SettingsError::Invalid` no se debe guardar los
+  valores por defecto sobre el archivo; hay que renombrar el roto antes de continuar, con su prueba.
+- Mapeo de `LogLevel`: `syon-storage-toml` ya duplica sus niveles y el logging añadirá otro hacia
+  `log::LevelFilter`; decidir en el parche de logging dónde vive el mapeo.
 
 ## Cómo retomar el trabajo
 

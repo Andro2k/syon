@@ -15,6 +15,8 @@ modelo plano `Settings` (ver [ADR-0008](../../docs/adr/0008-configuracion-toml.m
   escribe, así que el archivo no se sobrescribe.
 - `save`: crea la carpeta si falta, escribe un temporal en la misma carpeta, lo sincroniza y lo
   renombra sobre el destino. Si falla, el archivo anterior queda intacto y el temporal se borra.
+  Los guardados del proceso se serializan: varios `save` a la vez, desde hilos o desde distintas
+  instancias del adaptador, no fallan y gana el último en entrar.
 - Conserva `schema_version` y `[logging].level` en la ida y vuelta.
 
 ## Qué no hace
