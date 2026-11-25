@@ -8,7 +8,7 @@ targets = ["x86_64-pc-windows-msvc", "x86_64-unknown-linux-gnu"]
 [advisories]
 yanked = "deny"
 ignore = [
-    { id = "RUSTSEC-2026-0543", reason = "chrono sin mantenimiento; el prototipo solo lo usa para la hora de la consola. Se sustituirá al migrar (la librería de tiempo se decide en F1)." },
+    { id = "RUSTSEC-2026-0543", reason = "chrono sin mantenimiento; el prototipo solo lo usa para la hora de la consola. Se elimina con el prototipo; la hora local de la UI usará jiff (diseño 001)." },
 ]
 
 [licenses]
