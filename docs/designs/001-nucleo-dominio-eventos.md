@@ -129,6 +129,12 @@ pub trait SettingsStore: Send + Sync {
 }
 ```
 
+`Settings` es un modelo plano de `syon-app`, sin `serde`. Cada adaptador tiene su
+propio formato y traduce hacia y desde él; en F1 solo contiene `schema_version` y
+`logging.level` (por defecto `info`, porque el texto del chat solo aparece en
+`debug`). El coste es un tipo de formato por sección en el adaptador, barato con
+pocas secciones y a cambio `syon-app` queda libre de formatos.
+
 `EventSink` tiene al menos tres implementaciones previstas (el bus real, un
 colector para pruebas y, en F2, los dos adaptadores como productores que solo
 lo conocen a él), lo que justifica el trait. `SettingsStore` se justifica por
@@ -243,7 +249,8 @@ su puente a `log` sin tocar los puntos de registro.
 `cargo xtask arch-check` lee `cargo metadata` y falla si:
 
 1. `syon-domain` tiene dependencias externas o de otros crates del workspace.
-2. `syon-app` depende de algo distinto de `syon-domain`.
+2. `syon-app` tiene dependencias externas o de crates del workspace distintos de
+   `syon-domain`.
 3. Un adaptador depende de otro adaptador o de `syon-engine`.
 4. Algún crate, salvo el binario y la UI, depende de `syon-engine`.
 5. Algún crate, salvo `syon-engine` y el binario, depende de un adaptador.
@@ -257,9 +264,12 @@ ejemplo que debe fallar para cada regla. Se ejecuta en CI junto a `docs-check`.
 | tokio (solo `sync`) | `syon-engine` | Canales acotados del bus | 0007 |
 | log, env_logger | `syon-engine` | Registro a consola y archivo | 0006 |
 | toml, serde (`derive`) | `syon-storage-toml` | Leer y escribir `settings.toml` | 0008 |
-| thiserror | `syon-app`, `syon-storage-toml` | Errores tipados de los puertos | 0008 |
 | etcetera | `syon-engine` | Directorios de configuración, datos y caché | 0009 |
 | anyhow | `syon-engine` | Errores con contexto en el ensamblado | 0006 |
+
+No se adopta `thiserror`: el único error tipado de F1 (`SettingsError`) es un
+enum pequeño con `Display` y `Error` escritos a mano, lo que mantiene a `syon-app`
+sin dependencias externas, como exige la regla 2 de la sección 10.
 
 Se comprobó que todas las licencias de este conjunto (con `jiff` como
 transitiva de `env_logger`) están permitidas por el `deny.toml` actual. Los ADR

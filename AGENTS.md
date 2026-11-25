@@ -84,8 +84,9 @@ syon-engine → adaptadores → syon-app → syon-domain
 - Cada tipo y cada función cuyo comportamiento no sea evidente por su nombre lleva un
   comentario `///` de una o dos frases: para qué sirve y qué debe saber quien lo llama.
 - Orden de un módulo: `use`, constantes, tipos, `impl`, funciones privadas al final.
-- `thiserror` para los errores tipados de los puertos; `anyhow::Result` en los bordes
-  con `.context("no se pudo …")` en minúscula.
+- Errores tipados de los puertos: enums propios con `Display` y `Error` escritos a mano,
+  sin `thiserror`; `anyhow::Result` en los bordes con `.context("no se pudo …")` en
+  minúscula.
 - Los logs llevan el prefijo del subsistema: `"bus: …"`, `"ajustes: …"`.
 - Clippy sin avisos con `--all-targets`; `#[allow]` solo con un comentario que lo justifique.
 
