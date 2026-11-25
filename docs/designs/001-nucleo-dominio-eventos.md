@@ -3,6 +3,7 @@
 - Estado: Propuesta
 - Fase: F1
 - Fecha: 2026-11-24
+- Revisión: 2026-11-25, tras contrastar el diseño con Sonora (sección 16)
 
 ## 1. Objetivo y alcance
 
@@ -48,7 +49,9 @@ syon-domain      ← syon-app      ← syon-engine
 | `syon-engine` | Ensambla: implementa el bus, inicia el logging y conecta los adaptadores | todos los anteriores |
 
 Reglas: las flechas solo van hacia la izquierda; un adaptador nunca depende de
-otro adaptador; nada depende de `syon-engine` salvo el binario y la UI.
+otro adaptador; nada depende de `syon-engine` salvo el binario y la UI. Solo
+`syon-engine` y el binario nombran adaptadores concretos; el resto ve únicamente
+traits y modelos.
 
 ## 4. Modelo de dominio
 
@@ -165,77 +168,116 @@ Solo hay una política (descartar el nuevo); una segunda, como descartar el más
 antiguo, se añade cuando un consumidor concreto la necesite (YAGNI).
 
 ## 7. Configuración
-
 - Archivo `settings.toml` con `schema_version`. F1 define el mecanismo y la
   sección `[logging]`; cada fase añade sus secciones.
+- **Preferencias y estado de ejecución van en almacenes distintos.** Las
+  preferencias son lo que el usuario cambia a propósito (`settings.toml`); el
+  estado de ejecución es lo que la app cambia sola (posición de la ventana,
+  contadores de un temporizador). Así arrastrar un panel no reescribe las
+  preferencias. F1 solo implementa el primero; el segundo se crea con su primer
+  caso de uso.
 - Las claves desconocidas se ignoran, para que una versión nueva del archivo no
   rompa una versión anterior de SYON.
 - Archivo ausente: se usan los valores por defecto y no se escribe nada hasta
   el primer `save`. Archivo ilegible o con tipos incorrectos: error que indica
   la ruta y la clave, sin sobrescribir el archivo.
 - `save` escribe a un archivo temporal en la misma carpeta y lo renombra, para
-  no dejar un TOML a medias si el proceso se corta.
+  no dejar un TOML a medias si el proceso se corta. El guardado diferido
+  (debounce) llega con la primera fuente de cambios frecuentes, la UI de F9; en
+  F1 `save` es inmediato.
 - Los secretos no van aquí. Credenciales y tokens siguen en `.env` y en el
   archivo de tokens (F2); el tipo que contenga un secreto implementa `Debug` a
   mano para ocultarlo.
 - No hay migraciones entre versiones de esquema hasta que exista una segunda.
 
-## 8. Registro de diagnóstico
+### Ubicación de los datos
 
-- `tracing` con `tracing-subscriber` para la consola y `tracing-appender` para
-  el archivo `syon.log` con rotación diaria y 7 archivos como máximo.
-- El nivel sale de `[logging]` y de `SYON_LOG`, que tiene prioridad.
-- Se registran los descartes del bus, las reconexiones y los errores de ajustes.
-  No se registran tokens, secretos ni el texto completo del chat por encima de
-  `debug`.
+- Solo `syon-engine` consulta al sistema operativo con la crate `etcetera` y
+  entrega las rutas por constructor a los adaptadores; así las pruebas usan
+  carpetas temporales y no hace falta una variable de entorno de ubicación.
+- `settings.toml` va en el directorio de configuración; el log y el estado de
+  ejecución, en el de datos; la caché, en el de caché. La correspondencia exacta
+  en Windows y Linux se fija en el ADR 0009 tras probarla en ambos.
+- Se prefiere `etcetera` a `dirs` porque `dirs` arrastra `option-ext`, con
+  licencia MPL-2.0 (comprobado con `cargo deny`), y el ADR-0004 exige un ADR
+  explícito para cualquier licencia copyleft. `etcetera` es MIT o Apache-2.0 y
+  su único paquete adicional en Linux es `cfg-if`.
+
+## 8. Registro de diagnóstico
+Se sigue el patrón de Sonora: `log` con `env_logger` y un escritor de archivo
+propio, en lugar de `tracing`. Es lo más simple que cubre lo necesario y evita
+archivos con fecha y dependencias de tiempo transitivas.
+
+- **Archivo único:** `syon.log` con un tope de 16 MB; al superarlo pasa a
+  `syon.log.1` y se empieza otro. Se conservan las últimas 5 ejecuciones y cada
+  arranque escribe una línea de marca (`logging: syon <versión> started`) para
+  distinguirlas. Son valores iniciales ajustables en el ADR 0006.
+- **Dos filtros:** la consola muestra `warn` por defecto; el archivo, más
+  detalle por subsistema. `SYON_LOG` reemplaza el filtro del archivo.
+- **Redacción:** todo registro pasa por una función `redact` que elimina tokens,
+  secretos, códigos de OAuth y la carpeta personal, para que `syon.log` se pueda
+  adjuntar a un reporte. Es una red de seguridad: la regla sigue siendo no
+  registrar secretos.
+- **Pánicos:** un hook de pánico escribe el mensaje, el hilo y el backtrace (si
+  `RUST_BACKTRACE` lo habilita) en el log antes del hook por defecto.
+- **Mensajes:** con el prefijo del subsistema (`"bus: …"`). Se registran los
+  descartes del bus, las reconexiones y los errores de ajustes. El texto
+  completo del chat solo aparece en `debug`.
 - La inicialización vive en `syon-engine`; los demás crates solo usan las macros
-  de `tracing`.
+  de `log`.
+
+Coste aceptado: se pierden los spans de `tracing`. Si más adelante hace falta
+seguir una tarea asíncrona de extremo a extremo, `tracing` se puede añadir con
+su puente a `log` sin tocar los puntos de registro.
 
 ## 9. Tiempo
-
-- No se adopta ninguna librería de tiempo en F1: el dominio usa `Timestamp` y
-  la consola del prototipo conserva `chrono` hasta que se elimine.
-- La librería para mostrar horas locales se elige cuando una capa de
-  presentación la necesite (overlays o UI), con su ADR. Datos verificados hoy:
-  `jiff` 1.0.3 (MIT o Unlicense, ya en 1.x) y `time` 0.3.55 (MIT o Apache-2.0,
-  pre-1.0, requiere Rust 1.88).
-- `tracing-appender` ya trae `time` como dependencia transitiva; `tracing-subscriber`
-  por sí solo no trae ninguna.
+- No se adopta una librería de tiempo directa en F1: el dominio usa `Timestamp`
+  y la consola del prototipo conserva `chrono` hasta que se elimine.
+- Cuando una capa de presentación necesite horas locales (overlays o UI) se usa
+  `jiff`, con su ADR: `env_logger` con sus funciones por defecto ya lo trae
+  (jiff 1.0.3, MIT o Unlicense, ya en 1.x), y Sonora también lo usa.
+- Se descartan `time` (0.3.55, pre-1.0, requiere Rust 1.88) y `chrono` (sin
+  mantenimiento, RUSTSEC-2026-0543).
 
 ## 10. Comprobación de la arquitectura
-
 `cargo xtask arch-check` lee `cargo metadata` y falla si:
 
 1. `syon-domain` tiene dependencias externas o de otros crates del workspace.
 2. `syon-app` depende de algo distinto de `syon-domain`.
 3. Un adaptador depende de otro adaptador o de `syon-engine`.
 4. Algún crate, salvo el binario y la UI, depende de `syon-engine`.
+5. Algún crate, salvo `syon-engine` y el binario, depende de un adaptador.
 
 Las reglas se expresan como una tabla en `xtask`, y las pruebas incluyen un
 ejemplo que debe fallar para cada regla. Se ejecuta en CI junto a `docs-check`.
 
 ## 11. Dependencias nuevas
-
 | Dependencia | Crate | Motivo | ADR |
 |-------------|-------|--------|-----|
 | tokio (solo `sync`) | `syon-engine` | Canales acotados del bus | 0007 |
-| tracing, tracing-subscriber, tracing-appender | `syon-engine` | Registro estructurado a consola y archivo | 0006 |
+| log, env_logger | `syon-engine` | Registro a consola y archivo | 0006 |
 | toml, serde (`derive`) | `syon-storage-toml` | Leer y escribir `settings.toml` | 0008 |
 | thiserror | `syon-app`, `syon-storage-toml` | Errores tipados de los puertos | 0008 |
+| etcetera | `syon-engine` | Directorios de configuración, datos y caché | 0009 |
+| anyhow | `syon-engine` | Errores con contexto en el ensamblado | 0006 |
 
-Los ADR 0006 a 0008 se escriben en los parches de implementación, con su
-actualización de `docs/deps.md`, `deny.toml` y las licencias nuevas.
+Se comprobó que todas las licencias de este conjunto (con `jiff` como
+transitiva de `env_logger`) están permitidas por el `deny.toml` actual. Los ADR
+0006 a 0009 se escriben en los parches de implementación, con su actualización
+de `docs/deps.md`.
 
 ## 12. Plan de parches de implementación
-
-1. `feat(domain)`: crate `syon-domain` con los tipos y sus pruebas.
+1. `feat(domain)`: crate `syon-domain` con los tipos y sus pruebas; el
+   workspace pasa a `members = ["crates/*", "xtask"]` y a
+   `[workspace.dependencies]`.
 2. `feat(app)`: crate `syon-app` con `EventSink` y `SettingsStore`.
 3. `feat(engine)`: bus de eventos con descartes y estadísticas, y ADR 0007.
 4. `feat(storage)`: `syon-storage-toml` con escritura atómica, y ADR 0008.
-5. `feat(engine)`: logging a consola y archivo, y ADR 0006.
-6. `build(xtask)`: `arch-check` y su paso en CI.
-7. `docs`: ajuste del motivo del aviso de `chrono` en `deny.toml`, `docs/deps.md`
-   y walkthrough `WT-0.2.0_01`.
+5. `feat(engine)`: rutas de datos con `etcetera`, y ADR 0009.
+6. `feat(engine)`: logging con archivo acotado, redacción y hook de pánico, y
+   ADR 0006.
+7. `build(xtask)`: `arch-check` y su paso en CI.
+8. `docs`: `docs/deps.md` y walkthrough `WT-0.2.0_01`.
 
 ## 13. Criterio de salida de F1
 
@@ -244,21 +286,23 @@ actualización de `docs/deps.md`, `deny.toml` y las licencias nuevas.
   publicador (prueba con un consumidor detenido).
 - `settings.toml` hace ida y vuelta, tolera claves desconocidas y no sobrescribe
   un archivo corrupto.
-- El archivo de log se crea y rota, y no contiene credenciales.
+- `syon.log` se crea con tope y rotación a `syon.log.1`, marca cada arranque,
+  registra los pánicos y `redact` elimina tokens y secretos (con pruebas).
 - `cargo xtask arch-check` falla con cada una de las violaciones de la sección 10.
 - Todo en verde en CI, incluido `cargo deny`.
 
 ## 14. Decisiones abiertas
+1. **Bus:** se mantiene la propuesta (canales por consumidor, descartar el nuevo
+   y contar). En lo revisado de Sonora el estado vive en entidades de GPUI, así
+   que no hay un contraste directo: SYON necesita un engine sin interfaz para
+   servir los overlays.
+2. **Logging a archivo:** resuelta. Un único `syon.log` con escritor propio,
+   como Sonora (sección 8).
+3. **Ubicación de los datos:** resuelta. Directorios del sistema con `etcetera`
+   y rutas por constructor (sección 7).
+4. **Roles y id de usuario:** se difieren a F3 y F4.
 
-1. **Bus:** la propuesta (canales por consumidor, descartar el nuevo y contar)
-   frente a `broadcast`. Cambia la sección 6 y el ADR 0007.
-2. **Logging a archivo:** `tracing-appender` con rotación diaria (trae `time`
-   transitivo y genera `syon.log.AAAA-MM-DD`) frente a un único `syon.log` con
-   escritor propio, más cómodo para subir un log pero con más código.
-3. **Ubicación de los datos:** carpeta del SO (con la crate `directories`) o una
-   variable `SYON_HOME` con valor por defecto junto al ejecutable. No bloquea
-   los parches 1 a 3.
-4. **Roles y id de usuario:** se confirma que se difieren a F3 y F4.
+Pendiente: aceptación explícita del diseño para pasar a implementación.
 
 ## 15. Riesgos
 
@@ -268,3 +312,16 @@ actualización de `docs/deps.md`, `deny.toml` y las licencias nuevas.
   contador, el aviso y la capacidad por consumidor, no evitar el descarte.
 - Cuatro crates nuevos de golpe cuestan configuración; el resto se crea en su
   fase (ADR-0003).
+- El escritor de log propio es código que mantener (unas decenas de líneas);
+  se acota con pruebas de rotación y de redacción.
+- `redact` no puede garantizar que ningún secreto se cuele: es una red de
+  seguridad, no una autorización para registrarlos.
+- La correspondencia de `etcetera` con las carpetas de Windows no está probada
+  todavía; se verifica en el parche 5.
+
+## 16. Referencias
+
+- [Sonora](https://github.com/sonorahq/sonora) (GPL-3.0-or-later), solo como
+  referencia de diseño: logging con archivo acotado y redacción, preferencias
+  separadas del estado de ejecución, `webview` propio para el PO token (F7) y
+  dependencias centralizadas en el workspace. No se copia código.
