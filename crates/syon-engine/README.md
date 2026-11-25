@@ -11,8 +11,10 @@ puede nombrar adaptadores concretos (ver
 - `EventBus`: implementa `EventSink` y reparte cada evento a todos los consumidores, cada uno con
   su propio canal acotado de `Arc<Event>` ([ADR-0007](../../docs/adr/0007-bus-de-eventos.md)).
 - `SubscriberStats`: nombre, capacidad, eventos en cola y descartados de cada consumidor.
+- `AppPaths`: carpetas de configuración, datos y caché y las rutas de `settings.toml` y `syon.log`
+  ([ADR-0009](../../docs/adr/0009-rutas-de-datos.md)). Es el único lugar que consulta el sistema operativo.
 
-Llegarán en F1 las rutas de datos, el logging con archivo acotado y la conexión de
+Llegarán en F1 el logging con archivo acotado y la conexión de
 [`syon-storage-toml`](../syon-storage-toml/README.md).
 
 ## Qué no hace
@@ -20,6 +22,7 @@ Llegarán en F1 las rutas de datos, el logging con archivo acotado y la conexió
 - `publish` nunca espera: un consumidor lento pierde sus propios eventos, queda contado y
   registrado, y no frena a quien publica ni a los demás.
 - No decide qué hace cada consumidor con un evento; eso es de los módulos que se suscriben.
+- `AppPaths` no crea carpetas: las crea quien escribe el archivo.
 - No contiene lógica de negocio ni conoce el formato de ninguna plataforma.
 
 ## API pública
@@ -30,3 +33,6 @@ Llegarán en F1 las rutas de datos, el logging con archivo acotado y la conexió
 | `EventBus::subscribe(nombre, capacidad)` | Devuelve un `mpsc::Receiver<Arc<Event>>` propio; al soltarlo se retira |
 | `EventBus::stats()` | `Vec<SubscriberStats>` de los consumidores activos |
 | `impl EventSink for EventBus` | Punto de entrada de los productores |
+| `AppPaths::from_system()` | Resuelve las carpetas con las convenciones del sistema; error `PathsError` si no hay carpeta personal |
+| `AppPaths::under(raíz)` | Reparte `config`, `data` y `cache` bajo una raíz, sin consultar el sistema (pruebas) |
+| `config_dir`, `data_dir`, `cache_dir`, `settings_file`, `log_file` | Accesos a las rutas resueltas |

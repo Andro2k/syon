@@ -8,18 +8,20 @@ el trabajo sin depender de una conversación.
 
 - Fase: **F1** (núcleo), con el [diseño 001](designs/001-nucleo-dominio-eventos.md) aceptado.
 - Hecho: F0 completa ([WT-0.1.0_02](walkthroughs/WT-0.1.0_02.md)); F1 parche 1 (`syon-domain`),
-  parche 2 (`syon-app`), parche 3 (bus de eventos en `syon-engine`, ADR 0006 y 0007) y parche 4
-  (`syon-storage-toml` con escritura atómica, [ADR-0008](adr/0008-configuracion-toml.md)).
-- Siguiente: F1 parche 5, rutas de datos en `syon-engine` con la crate `etcetera` (no `dirs`) y su
-  ADR 0009, verificando su correspondencia con las carpetas de Windows.
-- Después, según la sección 12 del diseño: logging con archivo acotado (parche 6), `arch-check`
-  y su paso en CI (parche 7) y el walkthrough `WT-0.2.0_01` (parche 8).
+  parche 2 (`syon-app`), parche 3 (bus de eventos en `syon-engine`, ADR 0006 y 0007), parche 4
+  (`syon-storage-toml` con escritura atómica, [ADR-0008](adr/0008-configuracion-toml.md)) y parche 5
+  (rutas de datos con `etcetera` en `syon-engine`, [ADR-0009](adr/0009-rutas-de-datos.md)).
+- Siguiente: F1 parche 6, logging en `syon-engine` con `log` y `env_logger`: `syon.log` de 16 MB y
+  `syon.log.1`, últimas 5 ejecuciones, línea de marca por arranque, `redact` de secretos y hook de
+  pánico (ADR 0006 ya escrito).
+- Después, según la sección 12 del diseño: `arch-check` y su paso en CI (parche 7) y el
+  walkthrough `WT-0.2.0_01` (parche 8).
 
 ## Pendiente de decidir o verificar
 
 - Motores de TTS: se eligen en F4 con su ADR.
 - Interfaz: GPUI directo ([ADR-0005](adr/0005-ui-gpui-directo.md)); el spike de F9 valida los criterios.
-- La correspondencia de `etcetera` con las carpetas de Windows se prueba en el parche de rutas (5).
+- La prueba de `AppPaths` en Windows (`%APPDATA%`, `%LOCALAPPDATA%`) solo corre en el trabajo de Windows de la CI: confirmar que pasó al aplicar el parche 5.
 - Tras un `SettingsError::Invalid`, el engine no debe guardar valores por defecto sobre el archivo; lo decide el parche que conecte `syon-storage-toml` con el engine.
 - `chrono` sigue en el prototipo con su aviso ignorado en `deny.toml`; se va con el prototipo.
 
