@@ -1,0 +1,13 @@
+[package]
+name = "syon-app"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Puertos y casos de uso de SYON: lo que el núcleo necesita del exterior"
+
+[dependencies]
+syon-domain.workspace = true
+
+[lints]
+workspace = true

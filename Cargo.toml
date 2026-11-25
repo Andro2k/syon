@@ -11,6 +11,7 @@ publish = false
 
 [workspace.dependencies]
 syon-domain = { path = "crates/syon-domain" }
+syon-app = { path = "crates/syon-app" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

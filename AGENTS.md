@@ -21,8 +21,8 @@ para cualquier persona o herramienta que cambie el repositorio.
 
 ## Disposición de crates
 
-Estado: F1 en curso. `syon-domain` ya existe; los otros tres se crean en los parches de
-implementación del [diseño 001](docs/designs/001-nucleo-dominio-eventos.md).
+Estado: F1 en curso. `syon-domain` y `syon-app` ya existen; los otros dos se crean en los
+parches de implementación del [diseño 001](docs/designs/001-nucleo-dominio-eventos.md).
 
 ```text
 crates/

@@ -6,7 +6,8 @@ dependencia.
 
 ## Workspace (raíz)
 
-Sin dependencias externas: `xtask` y `syon-domain` usan solo la biblioteca estándar.
+Sin dependencias externas: `xtask` y `syon-domain` usan solo la biblioteca estándar y
+`syon-app` solo depende de `syon-domain`.
 
 ## prototypes/kick-console
 

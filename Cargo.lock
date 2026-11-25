@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "syon-app"
+version = "0.1.0"
+dependencies = [
+ "syon-domain",
+]
+
+[[package]]
 name = "syon-domain"
 version = "0.1.0"
 
