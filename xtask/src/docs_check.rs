@@ -16,7 +16,7 @@ pub fn check(root: &Path) -> Vec<String> {
 }
 
 fn check_links(root: &Path, problems: &mut Vec<String>) {
-    let mut files = vec![root.join("README.md")];
+    let mut files = vec![root.join("README.md"), root.join("AGENTS.md")];
     collect_markdown(&root.join("docs"), &mut files);
     for file in files.iter().filter(|f| f.is_file()) {
         let Ok(text) = fs::read_to_string(file) else {
@@ -150,6 +150,13 @@ mod tests {
         write(&root, "docs/adr/0001-uno.md", "adr");
         write(&root, "docs/adr/0000-plantilla.md", "plantilla");
         assert!(check(&root).is_empty());
+    }
+
+    #[test]
+    fn comprueba_los_enlaces_de_agents_md() {
+        let root = temp_root();
+        write(&root, "AGENTS.md", "[roto](docs/nada.md)");
+        assert_eq!(check(&root).len(), 1);
     }
 
     #[test]
