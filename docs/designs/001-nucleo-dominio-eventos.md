@@ -281,11 +281,12 @@ de `docs/deps.md`.
    workspace pasa a `members = ["crates/*", "xtask"]` y a
    `[workspace.dependencies]`.
 2. `feat(app)`: crate `syon-app` con `EventSink` y `SettingsStore`.
-3. `feat(engine)`: bus de eventos con descartes y estadísticas, y ADR 0007.
+3. `feat(engine)`: bus de eventos con descartes y estadísticas, ADR 0007 y, por ser el
+   primer uso de la fachada `log`, el ADR 0006.
 4. `feat(storage)`: `syon-storage-toml` con escritura atómica, y ADR 0008.
 5. `feat(engine)`: rutas de datos con `etcetera`, y ADR 0009.
-6. `feat(engine)`: logging con archivo acotado, redacción y hook de pánico, y
-   ADR 0006.
+6. `feat(engine)`: logging con archivo acotado, redacción y hook de pánico (ADR 0006,
+   escrito en el parche 3).
 7. `build(xtask)`: `arch-check` y su paso en CI.
 8. `docs`: `docs/deps.md` y walkthrough `WT-0.2.0_01`.
 

@@ -103,8 +103,8 @@ cargo test --workspace --locked
 cargo xtask docs-check
 ```
 
-Para dependencias: `cargo deny --manifest-path prototypes/kick-console/Cargo.toml check`
-y `cargo machete .` (ver [docs/deps.md](docs/deps.md)). La CI ejecuta lo mismo en
+Para dependencias: `cargo deny --manifest-path Cargo.toml check`, el mismo comando sobre
+`prototypes/kick-console/Cargo.toml` y `cargo machete .` (ver [docs/deps.md](docs/deps.md)). La CI ejecuta lo mismo en
 Ubuntu y Windows.
 
 ## Flujo de trabajo y entregas

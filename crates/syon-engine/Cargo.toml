@@ -1,0 +1,16 @@
+[package]
+name = "syon-engine"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Ensamblado de SYON: bus de eventos, rutas, logging y conexión de adaptadores"
+
+[dependencies]
+syon-app.workspace = true
+syon-domain.workspace = true
+tokio.workspace = true
+log.workspace = true
+
+[lints]
+workspace = true

@@ -13,6 +13,10 @@ publish = false
 syon-domain = { path = "crates/syon-domain" }
 syon-app = { path = "crates/syon-app" }
 
+# Dependencias externas (ADR-0004): cada una tiene su fila en docs/deps.md.
+tokio = { version = "1", default-features = false, features = ["sync"] }
+log = "0.4"
+
 [workspace.lints.rust]
 unsafe_code = "forbid"
 

@@ -7,11 +7,11 @@ el trabajo sin depender de una conversación.
 ## Dónde estamos
 
 - Fase: **F1** (núcleo), con el [diseño 001](designs/001-nucleo-dominio-eventos.md) aceptado.
-- Hecho: F0 completa ([WT-0.1.0_02](walkthroughs/WT-0.1.0_02.md)); F1 parche 1 (`syon-domain`)
-  y parche 2 (`syon-app`).
-- Siguiente: F1 parche 3, el bus de eventos en `syon-engine`, con su ADR.
-- Después, según la sección 12 del diseño: `syon-storage-toml`, rutas de datos, logging,
-  `arch-check` y el walkthrough `WT-0.2.0_01`.
+- Hecho: F0 completa ([WT-0.1.0_02](walkthroughs/WT-0.1.0_02.md)); F1 parche 1 (`syon-domain`),
+  parche 2 (`syon-app`) y parche 3 (bus de eventos en `syon-engine`, ADR 0006 y 0007).
+- Siguiente: F1 parche 4, `syon-storage-toml` con escritura atómica y su ADR 0008.
+- Después, según la sección 12 del diseño: rutas de datos (ADR 0009), logging con archivo
+  acotado, `arch-check` y el walkthrough `WT-0.2.0_01`.
 
 ## Pendiente de decidir o verificar
 

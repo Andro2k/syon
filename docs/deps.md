@@ -6,8 +6,13 @@ dependencia.
 
 ## Workspace (raíz)
 
-Sin dependencias externas: `xtask` y `syon-domain` usan solo la biblioteca estándar y
-`syon-app` solo depende de `syon-domain`.
+`xtask` y `syon-domain` usan solo la biblioteca estándar y `syon-app` solo depende de
+`syon-domain`. Dependencias directas de `syon-engine`:
+
+| Dependencia | Para qué | Alternativa | Riesgo |
+|-------------|----------|-------------|--------|
+| tokio 1 (solo `sync`) | Canales acotados del bus de eventos ([ADR-0007](adr/0007-bus-de-eventos.md)) | flume, async-channel | Bajo |
+| log 0.4 | Fachada de registro ([ADR-0006](adr/0006-registro-de-diagnostico.md)) | tracing con su puente a `log` | Pre-1.0, pero estable de hecho |
 
 ## prototypes/kick-console
 
@@ -30,6 +35,7 @@ Sin dependencias externas: `xtask` y `syon-domain` usan solo la biblioteca está
 ## Auditoría
 
 ```text
+cargo deny --manifest-path Cargo.toml check
 cargo deny --manifest-path prototypes/kick-console/Cargo.toml check
 cargo machete .
 ```
