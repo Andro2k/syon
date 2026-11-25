@@ -1,6 +1,6 @@
 # Diseño 001: núcleo de F1 (dominio, bus de eventos, configuración y logging)
 
-- Estado: Propuesta
+- Estado: Aceptado (2026-11-25)
 - Fase: F1
 - Fecha: 2026-11-24
 - Revisión: 2026-11-25, tras contrastar el diseño con Sonora (sección 16)
@@ -302,7 +302,8 @@ de `docs/deps.md`.
    y rutas por constructor (sección 7).
 4. **Roles y id de usuario:** se difieren a F3 y F4.
 
-Pendiente: aceptación explícita del diseño para pasar a implementación.
+El autor aceptó el diseño el 2026-11-25; la implementación sigue el plan de la
+sección 12, un parche por vez.
 
 ## 15. Riesgos
 

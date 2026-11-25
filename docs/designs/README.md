@@ -9,4 +9,4 @@ Estados: `Propuesta` · `Aceptado` · `Implementado` · `Descartado`.
 
 | Diseño | Título | Fase | Estado |
 |--------|--------|------|--------|
-| [001](001-nucleo-dominio-eventos.md) | Núcleo: dominio, bus de eventos, configuración y logging | F1 | Propuesta |
+| [001](001-nucleo-dominio-eventos.md) | Núcleo: dominio, bus de eventos, configuración y logging | F1 | Aceptado |
