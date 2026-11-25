@@ -15,6 +15,8 @@ para cualquier persona o herramienta que cambie el repositorio.
 - [Diseños](docs/designs/README.md): se escriben antes del código de cada fase.
 - [Walkthroughs](docs/walkthroughs/): cierre documentado de cada cambio.
 - [Registro de dependencias](docs/deps.md).
+- [Estado actual y traspaso](docs/estado.md): en qué paso está el trabajo, qué sigue y cómo
+  recrear el entorno.
 - `prototypes/kick-console/`: referencia ejecutable del listener de Kick. Fuera del
   workspace, con su propio `Cargo.lock`; solo se toca para migrarlo a los crates y
   se elimina al alcanzar paridad.
@@ -126,8 +128,9 @@ Ubuntu y Windows.
 6. Al cerrar un cambio o un conjunto de parches se escribe
    `docs/walkthroughs/WT-<versión>_<NN>.md` con contexto, cambios por capa, parches,
    archivos afectados, verificación ejecutada y riesgos conocidos.
-7. Se actualizan en el mismo parche que los provoca la tabla de paridad, `docs/deps.md`
-   y el índice de ADR o de diseños que corresponda.
+7. Se actualizan en el mismo parche que los provoca la tabla de paridad, `docs/deps.md`,
+   el índice de ADR o de diseños que corresponda y `docs/estado.md` cuando se completa un
+   paso del plan.
 
 ## Referencias externas
 

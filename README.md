@@ -24,6 +24,7 @@ arquitectura, estilo y entrega están en [AGENTS.md](AGENTS.md).
 
 - [Visión](docs/00-vision.md)
 - [Roadmap](docs/roadmap.md)
+- [Estado actual y traspaso](docs/estado.md)
 - [Paridad con MiniKick](docs/requirements/paridad.md)
 - [Decisiones de arquitectura (ADR)](docs/adr/README.md)
 - [Registro de dependencias](docs/deps.md)
