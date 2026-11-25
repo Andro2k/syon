@@ -1,0 +1,10 @@
+[package]
+name = "syon-domain"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Tipos puros del dominio de SYON: eventos, usuarios y marca de tiempo"
+
+[lints]
+workspace = true

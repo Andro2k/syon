@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["xtask"]
+members = ["crates/*", "xtask"]
 # Los prototipos tienen su propio Cargo.lock y no forman parte del workspace.
 exclude = ["prototypes/kick-console"]
 
@@ -8,6 +8,9 @@ exclude = ["prototypes/kick-console"]
 edition = "2024"
 rust-version = "1.91"
 publish = false
+
+[workspace.dependencies]
+syon-domain = { path = "crates/syon-domain" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
