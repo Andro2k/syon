@@ -17,7 +17,8 @@ cargo test --workspace --locked
 cargo xtask docs-check
 ```
 
-La auditoría de dependencias se describe en [docs/deps.md](docs/deps.md).
+La auditoría de dependencias se describe en [docs/deps.md](docs/deps.md). Las reglas de
+arquitectura, estilo y entrega están en [AGENTS.md](AGENTS.md).
 
 ## Documentación
 
