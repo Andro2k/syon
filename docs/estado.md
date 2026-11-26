@@ -7,8 +7,8 @@ el trabajo sin depender de una conversación.
 ## Dónde estamos
 
 - Fase: **F1 (núcleo) cerrada** con el [walkthrough WT-0.2.0_01](walkthroughs/WT-0.2.0_01.md); el
-  [diseño 001](designs/001-nucleo-dominio-eventos.md) está implementado en sus ocho parches. Falta
-  confirmar en la pestaña Actions que la CI, incluido el trabajo de Windows, pasa (ver abajo).
+  [diseño 001](designs/001-nucleo-dominio-eventos.md) está implementado en sus ocho parches y la CI,
+  incluido el trabajo de Windows, pasa en verde (confirmado por el autor el 2026-11-26).
 - Hecho: F0 ([WT-0.1.0_02](walkthroughs/WT-0.1.0_02.md)) y F1: `syon-domain`, `syon-app`, el bus de
   eventos, las rutas de datos y el registro en `syon-engine`, `syon-storage-toml`, `cargo xtask
   arch-check` y su paso en la CI.
@@ -37,11 +37,6 @@ el trabajo sin depender de una conversación.
 - Motores de TTS: se eligen en F4 con su ADR.
 - Interfaz: GPUI directo ([ADR-0005](adr/0005-ui-gpui-directo.md)); el spike de F9 valida los criterios.
 - `chrono` sigue en el prototipo con su aviso ignorado en `deny.toml`; se va con el prototipo.
-- Confirmar en la pestaña Actions que el job de Windows pasa. Solo allí se ejercitan la prueba de
-  `AppPaths` (`%APPDATA%`, `%LOCALAPPDATA%`), los guardados simultáneos del almacén TOML, la rotación
-  del registro (renombra `syon.log` mientras sigue abierto; en Windows pasa por `MoveFileEx` con
-  reemplazo) y la poda de ejecuciones (reescribe archivos con un temporal). En Linux las pruebas del
-  registro pasaron 25 de 25 ejecuciones seguidas.
 - Los permisos del archivo de credenciales no se comprueban en Windows (solo en Unix): confirmarlo al
   iniciar sesión por primera vez.
 - Decisión del autor: rechazar o avisar al guardar si el `schema_version` del archivo es mayor que
