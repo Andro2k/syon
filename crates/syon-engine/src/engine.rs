@@ -1,6 +1,8 @@
 use crate::{
-    AppPaths, EventBus, LoggingConfig, LoggingError, connectors::ConnectorRegistry, init_logging,
-    settings_loading::load_settings,
+    AppPaths, EventBus, LoggingConfig, LoggingError,
+    connectors::ConnectorRegistry,
+    init_logging,
+    settings_loading::{read_settings, recover},
 };
 use std::{error::Error, fmt, io};
 use syon_app::{ConnectionStatus, PlatformConnector, Settings};
@@ -26,17 +28,20 @@ pub struct Engine {
 impl Engine {
     /// Arranca el engine, en este orden:
     ///
-    /// 1. Lee `settings.toml` con [`TomlSettingsStore`]. Un archivo inválido se aparta como
-    ///    `settings.toml.invalid` y se usan los valores por defecto; nunca se guardan encima. Un
-    ///    problema con los ajustes no impide arrancar: queda como aviso en el registro.
+    /// 1. Lee `settings.toml` con [`TomlSettingsStore`], sin tocar el disco. Un problema con los
+    ///    ajustes no impide arrancar: se usan los valores por defecto.
     /// 2. Instala el registro con el nivel de los ajustes y la variable `SYON_LOG`
-    ///    ([`init_logging`]), con `app_version` en la marca de arranque.
-    /// 3. Crea el runtime asíncrono (ADR-0011), escribe los avisos del paso 1 y crea el [`EventBus`].
+    ///    ([`init_logging`]), con `app_version` en la marca de arranque, y crea el runtime
+    ///    asíncrono (ADR-0011). Si falla alguno, `start` termina sin haber cambiado nada en el
+    ///    disco por culpa de los ajustes.
+    /// 3. Atiende el problema del paso 1: un archivo inválido se aparta como
+    ///    `settings.toml.invalid` (nunca se guardan valores por defecto encima) y se avisa en el
+    ///    registro. Es lo último que puede fallar, y después crea el [`EventBus`].
     ///
     /// Solo puede llamarse una vez por proceso, porque el registro es global.
     pub fn start(paths: AppPaths, app_version: &str) -> Result<Self, StartError> {
         let settings_file = paths.settings_file();
-        let loaded = load_settings(&TomlSettingsStore::new(&settings_file), &settings_file);
+        let loaded = read_settings(&TomlSettingsStore::new(&settings_file));
         let logging = LoggingConfig::from_env(&loaded.settings.logging, app_version);
         init_logging(&paths, &logging).map_err(StartError::Logging)?;
         let runtime = Builder::new_multi_thread()
@@ -45,8 +50,8 @@ impl Engine {
             .enable_all()
             .build()
             .map_err(StartError::Runtime)?;
-        if let Some(warning) = &loaded.warning {
-            log::warn!("engine: {warning}");
+        if let Some(problem) = &loaded.problem {
+            log::warn!("engine: {}", recover(problem, &settings_file));
         }
         log::info!("engine: listo; ajustes en {}", settings_file.display());
         Ok(Self {

@@ -15,13 +15,16 @@ fija que un archivo inválido nunca se sobrescribe y deja a quien arranca la dec
 ## Decisión
 
 1. **`Engine::start(paths, app_version)`** es el punto de arranque. Hace, en este orden:
-   1. Lee `settings.toml` con `TomlSettingsStore` (la ruta sale de `AppPaths`).
+   1. Lee `settings.toml` con `TomlSettingsStore` (la ruta sale de `AppPaths`), **sin tocar el disco**.
    2. Instala el registro con el nivel de los ajustes, `SYON_LOG` y la versión de la aplicación
-      (ADR-0006).
-   3. Escribe en el registro los avisos de la lectura y crea el `EventBus`.
+      (ADR-0006) y crea el runtime asíncrono ([ADR-0011](0011-runtime-asincrono-del-engine.md)).
+   3. Atiende el problema de la lectura, si lo hubo (apartar un archivo inválido, punto 2), lo avisa en
+      el registro y crea el `EventBus`.
 
-   El orden es ese porque el nivel del registro sale de los ajustes: los avisos de la lectura se
-   guardan y se escriben cuando el registro ya existe. `Engine` ofrece `paths()`, `settings()` y
+   El orden es ese por dos razones. El nivel del registro sale de los ajustes, así que la lectura va
+   primero; y apartar el archivo es lo único que cambia el disco por culpa de los ajustes, así que va
+   al final, después de instalar el registro y crear el runtime, que son los pasos que pueden hacer
+   fallar el arranque (punto 4). `Engine` ofrece `paths()`, `settings()` y
    `bus()`; no guarda el almacén, porque nada lo usa todavía.
 2. **Un problema con los ajustes nunca impide arrancar.**
    - Contenido inválido (`SettingsError::Invalid`): el archivo se aparta renombrándolo a
@@ -35,8 +38,11 @@ fija que un archivo inválido nunca se sobrescribe y deja a quien arranca la dec
    `save` lo crea. Así, lo que el usuario escribió sobrevive en el apartado y un fallo de lectura
    transitorio no se convierte en pérdida de datos.
 4. **Un fallo del registro sí impide arrancar** (`StartError::Logging`): sin registro no hay forma de
-   diagnosticar un reporte. El binario decide cómo avisar. Como el registro es global, un segundo
-   `Engine::start` en el mismo proceso devuelve `LoggingError::AlreadyInitialized`.
+   diagnosticar un reporte, y tampoco se arranca si no se puede crear el runtime (`StartError::Runtime`).
+   El binario decide cómo avisar. Como el registro es global, un segundo
+   `Engine::start` en el mismo proceso devuelve `LoggingError::AlreadyInitialized`. En todos estos casos
+   `start` falla **sin haber cambiado nada en el disco**: el archivo inválido sigue donde estaba y un
+   apartado anterior no se sustituye.
 5. Todavía no hay binario: el crate `syon` se crea con su fase y llamará a `Engine::start` con
    `env!("CARGO_PKG_VERSION")`.
 
@@ -48,6 +54,7 @@ fija que un archivo inválido nunca se sobrescribe y deja a quien arranca la dec
 | Usar los valores por defecto y dejar el archivo roto en su sitio | El siguiente `save` lo sobrescribiría y se perdería lo que escribió el usuario |
 | Guardar los valores por defecto sobre el archivo | Mismo problema, de forma inmediata |
 | Un apartado con la hora en el nombre | Acumula archivos sin límite y necesita una librería de tiempo; basta con el último roto |
+| Apartar el archivo inválido al leerlo, antes de instalar el registro | Si el registro no se puede instalar (un segundo `start`, una carpeta de datos sin permisos), el archivo ya estaría movido, el aviso se perdería y un apartado anterior se habría sustituido |
 | Iniciar el registro antes de leer los ajustes, con nivel por defecto | El nivel del archivo no sería el de los ajustes en el primer arranque, y habría que cambiarlo después |
 | Que `syon-app` reciba el aviso por un puerto de notificaciones | Un puerto sin segundo uso; el registro ya es el canal de avisos |
 
@@ -57,9 +64,11 @@ fija que un archivo inválido nunca se sobrescribe y deja a quien arranca la dec
   la clave y dónde quedó el apartado.
 - Si el usuario no mira el log, puede no enterarse de que se ignoraron sus ajustes; una notificación en
   la interfaz queda para F9.
-- `Engine::start` toca el disco (renombra) antes de que exista el registro; por eso el aviso se
-  escribe después.
+- `Engine::start` solo toca el disco por culpa de los ajustes cuando el registro ya está instalado, así
+  que el aviso se escribe en cuanto se aparta el archivo. Un arranque que falla no deja rastro en la
+  carpeta de configuración.
 - Un `save` posterior crea un archivo nuevo con los ajustes del momento; el apartado se conserva hasta
   que otro archivo inválido lo sustituya.
 - Las pruebas de `Engine::start` viven en `crates/syon-engine/tests/` (un binario por prueba, porque
-  instala el registro global); la lógica de recuperación se prueba por separado con carpetas temporales.
+  instala el registro global), incluidos los dos casos de arranque fallido; la lógica de lectura y
+  recuperación se prueba por separado con carpetas temporales.

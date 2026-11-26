@@ -38,10 +38,19 @@ fn un_archivo_de_ajustes_invalido_se_aparta_y_el_engine_arranca_con_los_valores_
     assert!(log.contains("se movió el archivo a"), "{log}");
     assert!(log.contains("engine: listo"), "{log}");
 
-    // El registro es global: un segundo arranque en el mismo proceso falla sin tocar nada.
+    // El registro es global: un segundo arranque en el mismo proceso falla. Aunque aparezca otro
+    // archivo inválido, falla sin tocar el disco: ni lo aparta ni pisa el apartado anterior.
+    let second_broken = "[logging]\nlevel = 7\n";
+    fs::write(paths.settings_file(), second_broken).unwrap();
     assert!(matches!(
-        Engine::start(paths, "9.9.9").err(),
+        Engine::start(paths.clone(), "9.9.9").err(),
         Some(StartError::Logging(LoggingError::AlreadyInitialized))
     ));
+    assert_eq!(
+        fs::read_to_string(paths.settings_file()).unwrap(),
+        second_broken
+    );
+    let apartado = paths.config_dir().join("settings.toml.invalid");
+    assert_eq!(fs::read_to_string(apartado).unwrap(), broken);
     let _ = fs::remove_dir_all(&root);
 }

@@ -4,28 +4,42 @@ use std::{
 };
 use syon_app::{Settings, SettingsError, SettingsStore};
 
-/// Ajustes con los que arranca SYON y, si hubo un problema al leerlos, qué pasó.
+/// Ajustes con los que arranca SYON y, si hubo un problema al leerlos, cuál fue.
 #[derive(Debug)]
 pub(crate) struct LoadedSettings {
     pub(crate) settings: Settings,
-    /// Aviso para el log. Todavía no hay registro cuando se leen los ajustes (el nivel sale de
-    /// ellos), así que `Engine::start` lo escribe después de iniciarlo.
-    pub(crate) warning: Option<String>,
+    /// Problema de la lectura. Se atiende con [`recover`] cuando el registro ya está instalado:
+    /// el nivel del registro sale de los ajustes, así que todavía no hay dónde avisar.
+    pub(crate) problem: Option<SettingsError>,
 }
 
-/// Lee los ajustes y nunca impide arrancar (ADR-0010):
-///
-/// - Si el contenido es inválido, el archivo se aparta como `<nombre>.invalid` (sustituyendo a un
-///   apartado anterior) y se usan los valores por defecto. No se guarda nada: el siguiente `save`
-///   crea un archivo nuevo, y lo que había escrito el usuario sigue en el apartado.
-/// - Si no se puede acceder al archivo, se usan los valores por defecto y no se toca nada.
-pub(crate) fn load_settings(store: &dyn SettingsStore, file: &Path) -> LoadedSettings {
+/// Lee los ajustes sin tocar el disco ni fallar (ADR-0010). Si no se pueden leer, devuelve los
+/// valores por defecto y el problema, para que lo atienda [`recover`] más tarde.
+pub(crate) fn read_settings(store: &dyn SettingsStore) -> LoadedSettings {
     match store.load() {
         Ok(settings) => LoadedSettings {
             settings,
-            warning: None,
+            problem: None,
         },
-        Err(error @ SettingsError::Invalid { .. }) => {
+        Err(error) => LoadedSettings {
+            settings: Settings::default(),
+            problem: Some(error),
+        },
+    }
+}
+
+/// Atiende el problema de una lectura y devuelve el aviso para el registro (ADR-0010):
+///
+/// - Si el contenido es inválido, el archivo se aparta como `<nombre>.invalid` (sustituyendo a un
+///   apartado anterior). No se guarda nada: el siguiente `save` crea un archivo nuevo, y lo que
+///   había escrito el usuario sigue en el apartado.
+/// - Si no se puede acceder al archivo, no se toca nada.
+///
+/// Es lo único del arranque que cambia el disco por culpa de los ajustes, y por eso se llama solo
+/// cuando el registro ya se instaló: un arranque que va a fallar no debe mover el archivo.
+pub(crate) fn recover(error: &SettingsError, file: &Path) -> String {
+    match error {
+        SettingsError::Invalid { .. } => {
             let backup = backup_path(file);
             let outcome = match fs::rename(file, &backup) {
                 Ok(()) => format!(
@@ -37,18 +51,11 @@ pub(crate) fn load_settings(store: &dyn SettingsStore, file: &Path) -> LoadedSet
                      defecto y no se escribe nada"
                 ),
             };
-            default_with_warning(format!("{error}; {outcome}"))
+            format!("{error}; {outcome}")
         }
-        Err(error @ SettingsError::Io { .. }) => default_with_warning(format!(
-            "{error}; se usan los valores por defecto y no se escribe nada"
-        )),
-    }
-}
-
-fn default_with_warning(warning: String) -> LoadedSettings {
-    LoadedSettings {
-        settings: Settings::default(),
-        warning: Some(warning),
+        SettingsError::Io { .. } => {
+            format!("{error}; se usan los valores por defecto y no se escribe nada")
+        }
     }
 }
 
@@ -94,8 +101,22 @@ mod tests {
         }
     }
 
-    fn load(dir: &TempDir) -> LoadedSettings {
-        load_settings(&TomlSettingsStore::new(dir.file()), &dir.file())
+    /// Resultado de leer y, si hubo un problema, atenderlo: lo que hace `Engine::start`.
+    struct Outcome {
+        settings: Settings,
+        warning: Option<String>,
+    }
+
+    fn load(dir: &TempDir) -> Outcome {
+        load_with(&TomlSettingsStore::new(dir.file()), &dir.file())
+    }
+
+    fn load_with(store: &TomlSettingsStore, file: &Path) -> Outcome {
+        let loaded = read_settings(store);
+        Outcome {
+            settings: loaded.settings,
+            warning: loaded.problem.map(|error| recover(&error, file)),
+        }
     }
 
     #[test]
@@ -139,6 +160,21 @@ mod tests {
     }
 
     #[test]
+    fn leer_no_toca_el_disco_aunque_el_archivo_sea_invalido() {
+        let dir = TempDir::new();
+        let broken = "[logging]\nlevel = 5\n";
+        fs::write(dir.file(), broken).unwrap();
+        let loaded = read_settings(&TomlSettingsStore::new(dir.file()));
+        assert_eq!(loaded.settings, Settings::default());
+        assert!(matches!(
+            loaded.problem,
+            Some(SettingsError::Invalid { .. })
+        ));
+        assert_eq!(fs::read_to_string(dir.file()).unwrap(), broken);
+        assert_eq!(dir.entries(), 1);
+    }
+
+    #[test]
     fn un_segundo_archivo_invalido_sustituye_al_apartado_anterior() {
         let dir = TempDir::new();
         fs::write(dir.file(), "primero = [").unwrap();
@@ -158,7 +194,7 @@ mod tests {
         let dir = TempDir::new();
         fs::write(dir.file(), "roto = [").unwrap();
         let store = TomlSettingsStore::new(dir.file());
-        let loaded = load_settings(&store, &dir.file());
+        let loaded = load_with(&store, &dir.file());
         let mut settings = loaded.settings;
         settings.logging.level = LogLevel::Warn;
         syon_app::SettingsStore::save(&store, &settings).unwrap();
