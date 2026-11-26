@@ -24,6 +24,7 @@ pub struct AppPaths {
     config_dir: PathBuf,
     data_dir: PathBuf,
     cache_dir: PathBuf,
+    home_dir: Option<PathBuf>,
 }
 
 impl AppPaths {
@@ -39,17 +40,19 @@ impl AppPaths {
             config_dir: strategy.config_dir(),
             data_dir: strategy.data_dir(),
             cache_dir: strategy.cache_dir(),
+            home_dir: Some(strategy.home_dir().to_path_buf()),
         })
     }
 
     /// Reparte las tres carpetas bajo `root` (`config`, `data` y `cache`), sin consultar el
-    /// sistema. Sirve para pruebas y para una instalación portátil.
+    /// sistema. Sirve para pruebas y para una instalación portátil; no tiene carpeta personal.
     pub fn under(root: impl AsRef<Path>) -> Self {
         let root = root.as_ref();
         Self {
             config_dir: root.join("config"),
             data_dir: root.join("data"),
             cache_dir: root.join("cache"),
+            home_dir: None,
         }
     }
 
@@ -66,6 +69,12 @@ impl AppPaths {
     /// Carpeta de datos regenerables.
     pub fn cache_dir(&self) -> &Path {
         &self.cache_dir
+    }
+
+    /// Carpeta personal del usuario, si se resolvió con el sistema. El registro la oculta en sus
+    /// líneas; [`AppPaths::under`] no la tiene.
+    pub fn home_dir(&self) -> Option<&Path> {
+        self.home_dir.as_deref()
     }
 
     /// Archivo de ajustes (`settings.toml`, en la carpeta de configuración).
@@ -120,6 +129,16 @@ mod tests {
             Path::new("/raiz/config/settings.toml")
         );
         assert_eq!(paths.log_file(), Path::new("/raiz/data/syon.log"));
+    }
+
+    #[test]
+    fn under_no_tiene_carpeta_personal_y_el_sistema_si() {
+        assert_eq!(AppPaths::under("/raiz").home_dir(), None);
+        let home = AppPaths::from_system()
+            .unwrap()
+            .home_dir()
+            .map(Path::to_path_buf);
+        assert!(home.is_some_and(|home| home.is_absolute()));
     }
 
     #[test]

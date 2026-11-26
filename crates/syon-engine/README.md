@@ -36,3 +36,4 @@ Llegarán en F1 el logging con archivo acotado y la conexión de
 | `AppPaths::from_system()` | Resuelve las carpetas con las convenciones del sistema; error `PathsError` si no hay carpeta personal |
 | `AppPaths::under(raíz)` | Reparte `config`, `data` y `cache` bajo una raíz, sin consultar el sistema (pruebas) |
 | `config_dir`, `data_dir`, `cache_dir`, `settings_file`, `log_file` | Accesos a las rutas resueltas |
+| `home_dir()` | Carpeta personal (`Some` solo con `from_system`); la usa el registro para ocultarla |
