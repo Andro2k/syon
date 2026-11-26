@@ -14,8 +14,9 @@ el trabajo sin depender de una conversación.
   (logging en `syon-engine`: `syon.log` de 16 MB y `syon.log.1`, últimas 5 ejecuciones, marca por
   arranque, redactor de secretos y hook de pánico, [ADR-0006](adr/0006-registro-de-diagnostico.md); se
   entregó en dos parches: la carpeta personal en `AppPaths` y el registro).
-- Siguiente: F1 parche 7, `build(xtask)`: `arch-check` y su paso en CI (sección 10 del diseño).
-- Después: el walkthrough `WT-0.2.0_01` (parche 8), que cierra F1.
+  El parche 7 añadió `cargo xtask arch-check` (reglas de la sección 10 del diseño, con un lector de
+  JSON propio para `cargo metadata` en lugar de `serde_json`) y su paso en la CI.
+- Siguiente: el walkthrough `WT-0.2.0_01` (parche 8), que cierra F1.
 
 ## Pendiente de decidir o verificar
 

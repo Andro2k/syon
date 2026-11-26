@@ -31,6 +31,7 @@ jobs:
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
       - run: cargo xtask docs-check
+      - run: cargo xtask arch-check
       - run: cargo fmt --check --manifest-path prototypes/kick-console/Cargo.toml
       - run: cargo clippy --manifest-path prototypes/kick-console/Cargo.toml --all-targets --locked -- -D warnings
       - run: cargo test --manifest-path prototypes/kick-console/Cargo.toml --locked

@@ -51,7 +51,10 @@ syon-engine → adaptadores → syon-app → syon-domain
 - Solo `syon-engine` y el binario nombran adaptadores concretos; el resto ve traits y modelos.
 - La UI es un cliente del engine y nunca contiene lógica de negocio.
 
-`cargo xtask arch-check` hará cumplir esto en CI desde F1.
+`cargo xtask arch-check` hace cumplir esto en la CI: lee `cargo metadata` y falla ante cualquier
+arista que rompa las reglas de arriba (cuentan también las dependencias de desarrollo). Las reglas y el papel
+de cada crate están en `xtask/src/arch_check.rs`; un crate nuevo cuyo nombre no encaje en la tabla
+(`role_of`) se rechaza hasta que se decida su papel.
 
 ## Reglas
 
@@ -104,6 +107,7 @@ cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo xtask docs-check
+cargo xtask arch-check
 ```
 
 Para dependencias: `cargo deny --manifest-path Cargo.toml check`, el mismo comando sobre

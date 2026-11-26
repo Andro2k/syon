@@ -15,6 +15,7 @@ cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo xtask docs-check
+cargo xtask arch-check
 ```
 
 La auditoría de dependencias se describe en [docs/deps.md](docs/deps.md). Las reglas de
