@@ -12,30 +12,33 @@ el trabajo sin depender de una conversación.
 - Hecho: F0 ([WT-0.1.0_02](walkthroughs/WT-0.1.0_02.md)) y F1: `syon-domain`, `syon-app`, el bus de
   eventos, las rutas de datos y el registro en `syon-engine`, `syon-storage-toml`, `cargo xtask
   arch-check` y su paso en la CI.
+- Parche de conexión: `Engine::start` lee los ajustes con `syon-storage-toml`, aparta un archivo inválido
+  como `settings.toml.invalid` sin guardar nada encima, inicia el registro con el nivel de los ajustes y
+  crea el bus ([ADR-0010](adr/0010-arranque-del-engine.md)).
 - Siguiente: **F2 (plataformas)**: migrar Kick desde el prototipo y añadir Twitch, con el presupuesto de
   suscripciones por plataforma ([roadmap](roadmap.md)). Empieza con su diseño en `docs/designs/`
-  (regla «diseño antes que código»); antes, conectar `syon-engine` con `SettingsStore` e `init_logging`
-  según los pendientes de abajo.
+  (regla «diseño antes que código»); el crate `syon` (binario) que llame a `Engine::start` se crea con
+  su fase.
 
 ## Pendiente de decidir o verificar
 
 - Motores de TTS: se eligen en F4 con su ADR.
 - Interfaz: GPUI directo ([ADR-0005](adr/0005-ui-gpui-directo.md)); el spike de F9 valida los criterios.
 - La prueba de `AppPaths` en Windows (`%APPDATA%`, `%LOCALAPPDATA%`) solo corre en el trabajo de Windows de la CI: confirmar que pasó al aplicar el parche 5.
-- Tras un `SettingsError::Invalid`, el engine no debe guardar valores por defecto sobre el archivo; lo decide el parche que conecte `syon-storage-toml` con el engine.
 - `chrono` sigue en el prototipo con su aviso ignorado en `deny.toml`; se va con el prototipo.
 - Confirmar en la pestaña Actions que el job de Windows pasa, en particular la prueba de `AppPaths`
   que solo se compila allí y la de guardados simultáneos del almacén TOML.
 - Decisión del autor: rechazar o avisar al guardar si el `schema_version` del archivo es mayor que
   `SCHEMA_VERSION`. Hoy un `save` de una versión vieja reescribe el archivo sin las claves que no
   conoce y deja su versión (ADR 0008, consecuencias).
-- Al conectar el engine con `SettingsStore`: tras un `SettingsError::Invalid` no se debe guardar los
-  valores por defecto sobre el archivo; hay que renombrar el roto antes de continuar, con su prueba.
 - Confirmar en el job de Windows de la CI las pruebas nuevas del parche 6: la rotación renombra
   `syon.log` mientras sigue abierto (en Windows pasa por `MoveFileEx` con reemplazo) y la poda reescribe
   archivos con un temporal; en Linux pasan 25 de 25 ejecuciones seguidas.
-- El logging aún no se conecta a nada: ningún binario llama a `init_logging`. Lo hace el parche que
-  conecte `syon-engine` con `SettingsStore` (leer `[logging].level`, pasar la versión de la app).
+- Ningún binario llama todavía a `Engine::start`: las pruebas de `crates/syon-engine/tests/` son su
+  único uso. Al crear el crate `syon`, pasarle `env!("CARGO_PKG_VERSION")` y decidir cómo avisa un
+  `StartError`.
+- Si el usuario no mira el log, no se entera de que se ignoró un `settings.toml` inválido; una
+  notificación en la interfaz queda para F9 (ADR 0010).
 - Decisión del autor: «últimas 5 ejecuciones» se implementó de forma literal (se podan las marcas más
   antiguas entre `syon.log.1` y `syon.log` al arrancar, con la actual son 5). Si bastaba con el tope de
   tamaño, la poda (`prune_runs` en `log_file.rs`) se puede quitar sin tocar el resto.

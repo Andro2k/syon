@@ -19,7 +19,12 @@ puede nombrar adaptadores concretos (ver
   reemplaza. Conserva las últimas 5 ejecuciones, escribe una línea de marca por arranque, pasa cada línea
   por el redactor de secretos y registra los pánicos.
 
-Queda pendiente conectar [`syon-storage-toml`](../syon-storage-toml/README.md) y `init_logging` a un binario (F2).
+- `Engine`: el arranque ([ADR-0010](../../docs/adr/0010-arranque-del-engine.md)). Lee `settings.toml` con
+  [`syon-storage-toml`](../syon-storage-toml/README.md), inicia el registro con el nivel de los ajustes y
+  crea el bus. Un archivo de ajustes inválido se aparta como `settings.toml.invalid` y se usan los valores
+  por defecto; nunca se guarda nada encima.
+
+Todavía no hay binario que llame a `Engine::start`; el crate `syon` se crea con su fase.
 
 ## Qué no hace
 
@@ -27,6 +32,8 @@ Queda pendiente conectar [`syon-storage-toml`](../syon-storage-toml/README.md) y
   registrado, y no frena a quien publica ni a los demás.
 - No decide qué hace cada consumidor con un evento; eso es de los módulos que se suscriben.
 - `AppPaths` no crea carpetas: las crea quien escribe el archivo.
+- `Engine::start` no guarda ajustes al arrancar, ni tras un archivo inválido ni con el archivo ausente, y
+  solo puede llamarse una vez por proceso (el registro es global).
 - El redactor es una red de seguridad: reconoce secretos por el nombre de su clave y no detecta un valor
   suelto. La regla sigue siendo no registrar secretos.
 - No contiene lógica de negocio ni conoce el formato de ninguna plataforma.
@@ -41,6 +48,8 @@ Queda pendiente conectar [`syon-storage-toml`](../syon-storage-toml/README.md) y
 | `impl EventSink for EventBus` | Punto de entrada de los productores |
 | `AppPaths::from_system()` | Resuelve las carpetas con las convenciones del sistema; error `PathsError` si no hay carpeta personal |
 | `AppPaths::under(raíz)` | Reparte `config`, `data` y `cache` bajo una raíz, sin consultar el sistema (pruebas) |
+| `Engine::start(paths, versión)` | Lee los ajustes, inicia el registro y crea el bus; error `StartError` si el registro falla |
+| `Engine::paths()`, `settings()`, `bus()` | Accesos a lo que el engine arrancó |
 | `init_logging(&AppPaths, &LoggingConfig)` | Instala el registro y el hook de pánico; una sola vez por proceso (`LoggingError::AlreadyInitialized`) |
 | `LoggingConfig::from_env(&LoggingSettings, versión)` | Nivel de los ajustes y filtro de `SYON_LOG`; sus campos son públicos para quien no use el entorno |
 | `config_dir`, `data_dir`, `cache_dir`, `settings_file`, `log_file` | Accesos a las rutas resueltas |

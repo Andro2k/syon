@@ -24,7 +24,8 @@ modelo plano `Settings` (ver [ADR-0008](../../docs/adr/0008-configuracion-toml.m
 - No decide dónde vive el archivo: la ruta llega por constructor; `syon-engine` la resuelve (ADR 0009).
 - No guarda el estado de ejecución, solo preferencias, ni secretos.
 - No conserva comentarios ni el orden del archivo al guardar, y no migra entre versiones de esquema.
-- No decide qué hacer ante un `Invalid`: quien llama no debe guardar valores por defecto encima.
+- No decide qué hacer ante un `Invalid`: lo decide el engine, que aparta el archivo y no guarda
+  valores por defecto encima ([ADR-0010](../../docs/adr/0010-arranque-del-engine.md)).
 - No usa `thiserror`: los errores son los de `syon-app`.
 
 ## API pública

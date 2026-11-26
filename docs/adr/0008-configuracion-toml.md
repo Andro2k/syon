@@ -31,7 +31,7 @@ corromper el archivo (diseño 001, secciones 5 y 7).
      versión más nueva no rompa a una anterior.
    - Archivo ilegible (TOML roto, no UTF-8 o tipo incorrecto): `SettingsError::Invalid` con la ruta y,
      cuando se conoce, la clave. `load` nunca escribe, así que el archivo no se sobrescribe; quien llama
-     no debe guardar los valores por defecto tras un `Invalid`.
+     no debe guardar los valores por defecto tras un `Invalid` (el engine aparta el archivo, ADR-0010).
    - Fallo de acceso al disco: `SettingsError::Io` con la ruta.
    - `save` crea la carpeta si falta, escribe un temporal en la misma carpeta (`settings.toml.<pid>.tmp`),
      lo sincroniza a disco y lo renombra sobre el destino. Si algo falla, borra el temporal y el archivo

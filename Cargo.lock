@@ -325,6 +325,7 @@ dependencies = [
  "log",
  "syon-app",
  "syon-domain",
+ "syon-storage-toml",
  "tokio",
 ]
 
