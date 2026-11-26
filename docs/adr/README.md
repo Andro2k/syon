@@ -13,7 +13,7 @@ Estados: `Propuesta` · `Aceptada` · `Reemplazada por ADR-NNNN` · `Descartada`
 | [0003](0003-arquitectura-hexagonal-workspace.md) | Arquitectura hexagonal en un workspace de Cargo | Aceptada |
 | [0004](0004-politica-de-dependencias.md) | Política de dependencias | Aceptada |
 | [0005](0005-ui-gpui-directo.md) | Interfaz: GPUI directo desde Rust | Aceptada (a validar en F9) |
-| [0006](0006-registro-de-diagnostico.md) | Registro de diagnóstico con `log`, `env_logger` y un archivo acotado | Aceptada (se implementa en F1, parche 6) |
+| [0006](0006-registro-de-diagnostico.md) | Registro de diagnóstico con `log`, `env_logger` y un archivo acotado | Aceptada |
 | [0007](0007-bus-de-eventos.md) | Bus de eventos con un canal acotado por consumidor | Aceptada |
 | [0008](0008-configuracion-toml.md) | Configuración en TOML, preferencias separadas del estado y formato propio del adaptador | Aceptada |
 | [0009](0009-rutas-de-datos.md) | Rutas de datos con `etcetera`, resueltas solo en `syon-engine` | Aceptada |

@@ -10,12 +10,12 @@ el trabajo sin depender de una conversación.
 - Hecho: F0 completa ([WT-0.1.0_02](walkthroughs/WT-0.1.0_02.md)); F1 parche 1 (`syon-domain`),
   parche 2 (`syon-app`), parche 3 (bus de eventos en `syon-engine`, ADR 0006 y 0007), parche 4
   (`syon-storage-toml` con escritura atómica, [ADR-0008](adr/0008-configuracion-toml.md)) y parche 5
-  (rutas de datos con `etcetera` en `syon-engine`, [ADR-0009](adr/0009-rutas-de-datos.md)).
-- Siguiente: F1 parche 6, logging en `syon-engine` con `log` y `env_logger`: `syon.log` de 16 MB y
-  `syon.log.1`, últimas 5 ejecuciones, línea de marca por arranque, `redact` de secretos y hook de
-  pánico (ADR 0006 ya escrito).
-- Después, según la sección 12 del diseño: `arch-check` y su paso en CI (parche 7) y el
-  walkthrough `WT-0.2.0_01` (parche 8).
+  (rutas de datos con `etcetera` en `syon-engine`, [ADR-0009](adr/0009-rutas-de-datos.md)) y parche 6
+  (logging en `syon-engine`: `syon.log` de 16 MB y `syon.log.1`, últimas 5 ejecuciones, marca por
+  arranque, redactor de secretos y hook de pánico, [ADR-0006](adr/0006-registro-de-diagnostico.md); se
+  entregó en dos parches: la carpeta personal en `AppPaths` y el registro).
+- Siguiente: F1 parche 7, `build(xtask)`: `arch-check` y su paso en CI (sección 10 del diseño).
+- Después: el walkthrough `WT-0.2.0_01` (parche 8), que cierra F1.
 
 ## Pendiente de decidir o verificar
 
@@ -31,8 +31,14 @@ el trabajo sin depender de una conversación.
   conoce y deja su versión (ADR 0008, consecuencias).
 - Al conectar el engine con `SettingsStore`: tras un `SettingsError::Invalid` no se debe guardar los
   valores por defecto sobre el archivo; hay que renombrar el roto antes de continuar, con su prueba.
-- Mapeo de `LogLevel`: `syon-storage-toml` ya duplica sus niveles y el logging añadirá otro hacia
-  `log::LevelFilter`; decidir en el parche de logging dónde vive el mapeo.
+- Confirmar en el job de Windows de la CI las pruebas nuevas del parche 6: la rotación renombra
+  `syon.log` mientras sigue abierto (en Windows pasa por `MoveFileEx` con reemplazo) y la poda reescribe
+  archivos con un temporal; en Linux pasan 25 de 25 ejecuciones seguidas.
+- El logging aún no se conecta a nada: ningún binario llama a `init_logging`. Lo hace el parche que
+  conecte `syon-engine` con `SettingsStore` (leer `[logging].level`, pasar la versión de la app).
+- Decisión del autor: «últimas 5 ejecuciones» se implementó de forma literal (se podan las marcas más
+  antiguas entre `syon.log.1` y `syon.log` al arrancar, con la actual son 5). Si bastaba con el tope de
+  tamaño, la poda (`prune_runs` en `log_file.rs`) se puede quitar sin tocar el resto.
 
 ## Cómo retomar el trabajo
 

@@ -14,8 +14,12 @@ puede nombrar adaptadores concretos (ver
 - `AppPaths`: carpetas de configuración, datos y caché y las rutas de `settings.toml` y `syon.log`
   ([ADR-0009](../../docs/adr/0009-rutas-de-datos.md)). Es el único lugar que consulta el sistema operativo.
 
-Llegarán en F1 el logging con archivo acotado y la conexión de
-[`syon-storage-toml`](../syon-storage-toml/README.md).
+- Registro de diagnóstico ([ADR-0006](../../docs/adr/0006-registro-de-diagnostico.md)): la consola
+  muestra `warn` y `syon.log` (16 MB, pasa a `syon.log.1`) el nivel de `[logging].level`, que `SYON_LOG`
+  reemplaza. Conserva las últimas 5 ejecuciones, escribe una línea de marca por arranque, pasa cada línea
+  por el redactor de secretos y registra los pánicos.
+
+Llegará en F1 la conexión de [`syon-storage-toml`](../syon-storage-toml/README.md).
 
 ## Qué no hace
 
@@ -23,6 +27,8 @@ Llegarán en F1 el logging con archivo acotado y la conexión de
   registrado, y no frena a quien publica ni a los demás.
 - No decide qué hace cada consumidor con un evento; eso es de los módulos que se suscriben.
 - `AppPaths` no crea carpetas: las crea quien escribe el archivo.
+- El redactor es una red de seguridad: reconoce secretos por el nombre de su clave y no detecta un valor
+  suelto. La regla sigue siendo no registrar secretos.
 - No contiene lógica de negocio ni conoce el formato de ninguna plataforma.
 
 ## API pública
@@ -35,5 +41,7 @@ Llegarán en F1 el logging con archivo acotado y la conexión de
 | `impl EventSink for EventBus` | Punto de entrada de los productores |
 | `AppPaths::from_system()` | Resuelve las carpetas con las convenciones del sistema; error `PathsError` si no hay carpeta personal |
 | `AppPaths::under(raíz)` | Reparte `config`, `data` y `cache` bajo una raíz, sin consultar el sistema (pruebas) |
+| `init_logging(&AppPaths, &LoggingConfig)` | Instala el registro y el hook de pánico; una sola vez por proceso (`LoggingError::AlreadyInitialized`) |
+| `LoggingConfig::from_env(&LoggingSettings, versión)` | Nivel de los ajustes y filtro de `SYON_LOG`; sus campos son públicos para quien no use el entorno |
 | `config_dir`, `data_dir`, `cache_dir`, `settings_file`, `log_file` | Accesos a las rutas resueltas |
 | `home_dir()` | Carpeta personal (`Some` solo con `from_system`); la usa el registro para ocultarla |

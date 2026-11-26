@@ -216,7 +216,7 @@ archivos con fecha y dependencias de tiempo transitivas.
 
 - **Archivo único:** `syon.log` con un tope de 16 MB; al superarlo pasa a
   `syon.log.1` y se empieza otro. Se conservan las últimas 5 ejecuciones y cada
-  arranque escribe una línea de marca (`logging: syon <versión> started`) para
+  arranque escribe una línea de marca (`logging: syon <versión> iniciado`) para
   distinguirlas. Son valores iniciales ajustables en el ADR 0006.
 - **Dos filtros:** la consola muestra `warn` por defecto; el archivo, más
   detalle por subsistema. `SYON_LOG` reemplaza el filtro del archivo.

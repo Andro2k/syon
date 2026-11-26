@@ -1,7 +1,7 @@
 # ADR-0006: Registro de diagnóstico con `log`, `env_logger` y un archivo acotado
 
-- Estado: Aceptada (la fachada `log` se adopta con el bus de eventos; el archivo, la redacción
-  y el hook de pánico se implementan en el parche 6 de F1)
+- Estado: Aceptada (la fachada `log` se adoptó con el bus de eventos; el archivo, la redacción y el
+  hook de pánico se implementaron en el parche 6 de F1)
 - Fecha: 2026-11-25
 
 ## Contexto
@@ -25,6 +25,34 @@ escritor de archivo propio.
 5. Un hook de pánico escribe el mensaje, el hilo y el backtrace en el log.
 6. Mensajes en español con el prefijo del subsistema (`"bus: …"`).
 
+## Detalles de la implementación
+
+Precisiones tomadas al escribir el parche 6; no cambian la decisión.
+
+- **Entrada:** `init_logging(&AppPaths, &LoggingConfig)`. `LoggingConfig::from_env` toma el nivel de
+  `[logging].level` y el filtro de `SYON_LOG` (vacío no cuenta). Solo se puede llamar una vez por
+  proceso; una segunda llamada devuelve `LoggingError::AlreadyInitialized` sin tocar el archivo.
+- **Formato:** `<hora UTC con milisegundos> <NIVEL> [<destino>] <mensaje>`. Las líneas siguientes de un
+  mensaje llevan cuatro espacios de sangría, de modo que solo la primera línea de cada registro
+  empieza en la columna cero y un texto de chat no puede imitar una marca de arranque.
+- **Marca de arranque:** `logging: syon <versión> iniciado`, con el destino `syon::arranque` y nivel
+  `info`. Se escribe siempre, aunque el filtro del archivo sea más estricto, y delimita las ejecuciones.
+- **Ejecuciones:** al abrir el archivo se conservan las 4 ejecuciones anteriores más recientes entre
+  `syon.log.1` y `syon.log` (con la que arranca, 5). Lo que haya antes de la primera marca es el resto de
+  una ejecución cuya marca ya se descartó y cuenta como una. La rotación por tamaño ocurre en la escritura:
+  si el sistema no deja renombrar, se sigue escribiendo en `syon.log` en lugar de perder líneas.
+- **Consola:** siempre `warn`, a `stderr`; `SYON_LOG` solo afecta al archivo.
+- **Redacción:** `redact` oculta con `[REDACTADO]` el valor de las claves cuyo nombre termina en `token`,
+  `secret`, `password`, `passwd`, `cookie`, `verifier`, `api_key` o `api-key`, además de `authorization` y
+  `code` (este solo si el valor tiene 8 o más caracteres, para no ocultar `code=404`), y la credencial que
+  sigue a `Bearer`. La carpeta personal pasa a `~`. Reconoce secretos por su clave: un valor suelto sin clave
+  no se detecta. Se escribió a mano para no añadir `regex` como dependencia directa.
+- **Pánico:** `pánico: el hilo '<hilo>' falló en <archivo:línea>: <mensaje>` y el backtrace si
+  `RUST_BACKTRACE` lo habilita; después actúa el hook anterior.
+- **Mapeo de niveles:** `syon-engine` traduce `LogLevel` (de `syon-app`) a `log::LevelFilter`.
+  `syon-storage-toml` mantiene aparte los nombres del archivo TOML: son dos traducciones con propósitos
+  distintos y `syon-app` no puede conocer `log` (diseño 001, sección 10).
+
 ## Alternativas consideradas
 
 - `tracing` con `tracing-subscriber` y `tracing-appender`: aporta spans, pero rota por día
@@ -40,3 +68,7 @@ escritor de archivo propio.
 - `env_logger` con sus funciones por defecto trae `jiff` y `regex` (verificado); `jiff` es la
   librería de tiempo prevista para la presentación (diseño 001, sección 9).
 - `log` es una dependencia 0.x; se registra en `docs/deps.md`.
+- Con la marca a nivel `info`, el nivel máximo del archivo nunca baja de `info`, aunque `[logging].level`
+  sea `error`; `debug` y `trace` se siguen descartando antes de formatear.
+- `redact` y la rotación se prueban con carpetas temporales; la prueba que instala el logger y el hook de
+  pánico del proceso vive en `crates/syon-engine/tests/logging.rs`, un binario aparte.

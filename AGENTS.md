@@ -24,15 +24,15 @@ para cualquier persona o herramienta que cambie el repositorio.
 ## Disposición de crates
 
 Estado: F1 en curso. `syon-domain`, `syon-app`, `syon-engine` (bus de eventos y rutas de datos) y
-`syon-storage-toml` ya existen; el resto de `syon-engine` (logging) se completa en los
-parches de implementación del [diseño 001](docs/designs/001-nucleo-dominio-eventos.md).
+`syon-storage-toml` ya existen; el resto de `syon-engine` (conexión de los adaptadores) se completa en
+los parches de implementación del [diseño 001](docs/designs/001-nucleo-dominio-eventos.md).
 
 ```text
 crates/
   syon-domain/          tipos puros: eventos, usuarios, marca de tiempo (sin I/O ni async)
   syon-app/             puertos (traits) y casos de uso
   syon-storage-toml/    adaptador de ajustes sobre TOML (settings.toml, escritura atómica)
-  syon-engine/          ensambla todo: bus, rutas, logging; corre sin interfaz (hoy, el bus y las rutas)
+  syon-engine/          ensambla todo: bus, rutas, logging; corre sin interfaz (hoy, el bus, las rutas y el registro)
 xtask/                  tareas de mantenimiento (cargo xtask)
 ```
 
@@ -77,7 +77,9 @@ syon-engine → adaptadores → syon-app → syon-domain
   implementan `Debug` a mano. `.env` y los archivos de tokens están en `.gitignore`.
 - **Sin `unsafe`.** El workspace lo prohíbe.
 - **Pruebas.** Cada crate nuevo trae las pruebas de su criterio de salida, en
-  `#[cfg(test)] mod tests` al final del archivo que cubren.
+  `#[cfg(test)] mod tests` al final del archivo que cubren. Lo que instala estado global del
+  proceso (el logger, el hook de pánico) se prueba en `crates/<crate>/tests/`, un binario aparte con
+  una sola prueba, para no afectar a las demás.
 - **Código generado.** Se regenera, no se edita a mano.
 
 ## Estilo de código
