@@ -19,7 +19,7 @@ puede nombrar adaptadores concretos (ver
   reemplaza. Conserva las últimas 5 ejecuciones, escribe una línea de marca por arranque, pasa cada línea
   por el redactor de secretos y registra los pánicos.
 
-Llegará en F1 la conexión de [`syon-storage-toml`](../syon-storage-toml/README.md).
+Queda pendiente conectar [`syon-storage-toml`](../syon-storage-toml/README.md) y `init_logging` a un binario (F2).
 
 ## Qué no hace
 

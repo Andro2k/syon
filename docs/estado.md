@@ -6,17 +6,16 @@ el trabajo sin depender de una conversación.
 
 ## Dónde estamos
 
-- Fase: **F1** (núcleo), con el [diseño 001](designs/001-nucleo-dominio-eventos.md) aceptado.
-- Hecho: F0 completa ([WT-0.1.0_02](walkthroughs/WT-0.1.0_02.md)); F1 parche 1 (`syon-domain`),
-  parche 2 (`syon-app`), parche 3 (bus de eventos en `syon-engine`, ADR 0006 y 0007), parche 4
-  (`syon-storage-toml` con escritura atómica, [ADR-0008](adr/0008-configuracion-toml.md)) y parche 5
-  (rutas de datos con `etcetera` en `syon-engine`, [ADR-0009](adr/0009-rutas-de-datos.md)) y parche 6
-  (logging en `syon-engine`: `syon.log` de 16 MB y `syon.log.1`, últimas 5 ejecuciones, marca por
-  arranque, redactor de secretos y hook de pánico, [ADR-0006](adr/0006-registro-de-diagnostico.md); se
-  entregó en dos parches: la carpeta personal en `AppPaths` y el registro).
-  El parche 7 añadió `cargo xtask arch-check` (reglas de la sección 10 del diseño, con un lector de
-  JSON propio para `cargo metadata` en lugar de `serde_json`) y su paso en la CI.
-- Siguiente: el walkthrough `WT-0.2.0_01` (parche 8), que cierra F1.
+- Fase: **F1 (núcleo) cerrada** con el [walkthrough WT-0.2.0_01](walkthroughs/WT-0.2.0_01.md); el
+  [diseño 001](designs/001-nucleo-dominio-eventos.md) está implementado en sus ocho parches. Falta
+  confirmar en la pestaña Actions que la CI, incluido el trabajo de Windows, pasa (ver abajo).
+- Hecho: F0 ([WT-0.1.0_02](walkthroughs/WT-0.1.0_02.md)) y F1: `syon-domain`, `syon-app`, el bus de
+  eventos, las rutas de datos y el registro en `syon-engine`, `syon-storage-toml`, `cargo xtask
+  arch-check` y su paso en la CI.
+- Siguiente: **F2 (plataformas)**: migrar Kick desde el prototipo y añadir Twitch, con el presupuesto de
+  suscripciones por plataforma ([roadmap](roadmap.md)). Empieza con su diseño en `docs/designs/`
+  (regla «diseño antes que código»); antes, conectar `syon-engine` con `SettingsStore` e `init_logging`
+  según los pendientes de abajo.
 
 ## Pendiente de decidir o verificar
 
