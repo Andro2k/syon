@@ -1,0 +1,45 @@
+# syon-platform-twitch
+
+Adaptador de Twitch (F2, [diseño 002](../../docs/designs/002-plataformas-kick-twitch.md)). Gestiona el
+inicio de sesión OAuth. Sigue la estructura de [`syon-platform-kick`](../syon-platform-kick/README.md),
+del que no depende. La API de Helix y los eventos de EventSub por WebSocket llegan en los parches
+siguientes del mismo paso.
+
+## Qué hace
+
+### OAuth ([ADR-0016](../../docs/adr/0016-oauth-y-api-de-twitch.md))
+
+- `OAuthClient` inicia sesión con el flujo de código de autorización y un callback local
+  (`http://localhost:8081/auth/callback` por defecto), y renueva tokens. No guarda nada y no abre el
+  navegador: entrega el enlace a quien llama (`on_url`).
+- `TokenManager` deja lista una sesión: reutiliza las credenciales guardadas, las renueva si van a
+  vencer (margen de 60 s) o inicia sesión de nuevo si no hay, faltan permisos o la renovación falla.
+  Persiste solo por el puerto `CredentialStore`. `force_refresh` renueva a la fuerza ante un 401.
+- Pide desde el primer inicio de sesión los permisos de lectura de las ocho suscripciones
+  (`user:read:chat`, `channel:moderate`, `channel:read:redemptions`, `moderator:read:followers`) y el de
+  escritura de chat (`user:write:chat`).
+- Los errores (`OAuthError`) nunca incluyen tokens, el `client_secret` ni el contenido de una respuesta
+  ilegible; `TwitchAppConfig` implementa `Debug` sin el secreto.
+
+## Qué no hace
+
+- No lee `.env`, el entorno ni los ajustes: `TwitchAppConfig` llega por constructor. De dónde sale el
+  `client_secret` lo decide el autor (pendiente 6 del diseño).
+- No abre el navegador ni crea el runtime del engine.
+- No envía mensajes ni modera (F3).
+- Los endpoints de `id.twitch.tv`, el formato de la respuesta y los permisos salen de la documentación de
+  Twitch y no se han contrastado en vivo; el OAuth se prueba con servidores locales falsos. El permiso
+  `moderator:read:followers` está sin contrastar (ver el ADR).
+
+## API pública
+
+| Elemento | Para qué sirve |
+|----------|----------------|
+| `TwitchAppConfig::new(client_id, client_secret)` | Datos de la aplicación de Twitch, con callback y permisos por defecto |
+| `OAuthClient::new(config)` | Cliente OAuth: `login(on_url)`, `refresh(&credenciales)` y `client_id()` |
+| `TokenManager::start(oauth, almacén, on_url)` | Deja lista la sesión; devuelve su `Source` |
+| `TokenManager::access_token()` / `force_refresh()` / `client_id()` | Token vigente, renovado si hace falta |
+| `OAuthError` | Fallos tipados del inicio de sesión y de la renovación |
+| `DEFAULT_REDIRECT_URI` / `DEFAULT_SCOPES` | Callback y permisos por defecto |
+
+Dependencias: `syon-app`, `syon-domain`, `serde`, `reqwest`, `base64`, `rand`, `log` y `tokio`.

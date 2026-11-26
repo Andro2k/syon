@@ -1209,6 +1209,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "syon-platform-twitch"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "log",
+ "rand 0.9.5",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "syon-app",
+ "syon-domain",
+ "tokio",
+]
+
+[[package]]
 name = "syon-storage-credentials"
 version = "0.1.0"
 dependencies = [

@@ -23,6 +23,7 @@ Estados: `Propuesta` · `Aceptada` · `Reemplazada por ADR-NNNN` · `Descartada`
 | [0013](0013-json-tolerante-en-adaptadores.md) | JSON tolerante con `serde_json::Value` en los adaptadores de plataforma | Aceptada |
 | [0014](0014-oauth-de-kick.md) | OAuth 2.1 de Kick con PKCE, callback local y cliente HTTP `reqwest` | Aceptada |
 | [0015](0015-conexion-al-feed-de-kick.md) | Conexión al feed de Kick con `tokio-tungstenite` y un conector abortable | Aceptada |
+| [0016](0016-oauth-y-api-de-twitch.md) | OAuth de Twitch con código de autorización, callback local y cliente mínimo de Helix | Aceptada |
 
 Para crear uno nuevo: copiar [0000-plantilla.md](0000-plantilla.md), usar el
 siguiente número libre y añadir la fila a esta tabla en el mismo commit.
