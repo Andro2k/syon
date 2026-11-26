@@ -35,18 +35,17 @@ el trabajo sin depender de una conversación.
   2026-11-26; el plazo de bienvenida y el coste real se confirman en vivo al implementar.
 - Motores de TTS: se eligen en F4 con su ADR.
 - Interfaz: GPUI directo ([ADR-0005](adr/0005-ui-gpui-directo.md)); el spike de F9 valida los criterios.
-- La prueba de `AppPaths` en Windows (`%APPDATA%`, `%LOCALAPPDATA%`) solo corre en el trabajo de Windows de la CI: confirmar que pasó al aplicar el parche 5.
 - `chrono` sigue en el prototipo con su aviso ignorado en `deny.toml`; se va con el prototipo.
-- Confirmar en la pestaña Actions que el job de Windows pasa, en particular la prueba de `AppPaths`
-  que solo se compila allí y la de guardados simultáneos del almacén TOML.
+- Confirmar en la pestaña Actions que el job de Windows pasa. Solo allí se ejercitan la prueba de
+  `AppPaths` (`%APPDATA%`, `%LOCALAPPDATA%`), los guardados simultáneos del almacén TOML, la rotación
+  del registro (renombra `syon.log` mientras sigue abierto; en Windows pasa por `MoveFileEx` con
+  reemplazo) y la poda de ejecuciones (reescribe archivos con un temporal). En Linux las pruebas del
+  registro pasaron 25 de 25 ejecuciones seguidas.
+- Los permisos del archivo de credenciales no se comprueban en Windows (solo en Unix): confirmarlo al
+  iniciar sesión por primera vez.
 - Decisión del autor: rechazar o avisar al guardar si el `schema_version` del archivo es mayor que
   `SCHEMA_VERSION`. Hoy un `save` de una versión vieja reescribe el archivo sin las claves que no
   conoce y deja su versión (ADR 0008, consecuencias).
-- Confirmar en el job de Windows de la CI las pruebas nuevas del parche 6: la rotación renombra
-  `syon.log` mientras sigue abierto (en Windows pasa por `MoveFileEx` con reemplazo) y la poda reescribe
-  archivos con un temporal; en Linux pasan 25 de 25 ejecuciones seguidas.
-- Los permisos del archivo de credenciales no se comprueban en Windows (solo en Unix): confirmarlo al
-  aplicar el parche 6 y al iniciar sesión por primera vez.
 - El OAuth de Kick solo se probó con servidores locales falsos: falta un inicio de sesión real contra
   `id.kick.com` (endpoints, permisos y puerto de callback `8080`, que debe estar registrado en la aplicación
   de Kick).
