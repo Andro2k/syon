@@ -7,7 +7,8 @@ dependencia.
 ## Workspace (raíz)
 
 `xtask` y `syon-domain` usan solo la biblioteca estándar y `syon-app` solo depende de
-`syon-domain`. Dependencias directas de `syon-engine` y de `syon-storage-toml`:
+`syon-domain`. Dependencias directas de `syon-engine` y de los adaptadores `syon-storage-toml` y
+`syon-storage-credentials` (este último reutiliza `toml` y `serde`, [ADR-0012](adr/0012-almacen-de-credenciales.md)):
 
 | Dependencia | Para qué | Alternativa | Riesgo |
 |-------------|----------|-------------|--------|

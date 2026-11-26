@@ -330,6 +330,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "syon-storage-credentials"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "syon-app",
+ "syon-domain",
+ "toml",
+]
+
+[[package]]
 name = "syon-storage-toml"
 version = "0.1.0"
 dependencies = [

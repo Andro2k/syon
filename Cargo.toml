@@ -13,6 +13,7 @@ publish = false
 syon-domain = { path = "crates/syon-domain" }
 syon-app = { path = "crates/syon-app" }
 syon-storage-toml = { path = "crates/syon-storage-toml" }
+syon-storage-credentials = { path = "crates/syon-storage-credentials" }
 
 # Dependencias externas (ADR-0004): cada una tiene su fila en docs/deps.md.
 tokio = { version = "1", default-features = false, features = ["sync"] }
