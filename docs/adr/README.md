@@ -18,6 +18,7 @@ Estados: `Propuesta` · `Aceptada` · `Reemplazada por ADR-NNNN` · `Descartada`
 | [0008](0008-configuracion-toml.md) | Configuración en TOML, preferencias separadas del estado y formato propio del adaptador | Aceptada |
 | [0009](0009-rutas-de-datos.md) | Rutas de datos con `etcetera`, resueltas solo en `syon-engine` | Aceptada |
 | [0010](0010-arranque-del-engine.md) | Arranque del engine y recuperación de ajustes inválidos | Aceptada |
+| [0011](0011-runtime-asincrono-del-engine.md) | Runtime asíncrono propiedad del engine | Aceptada |
 
 Para crear uno nuevo: copiar [0000-plantilla.md](0000-plantilla.md), usar el
 siguiente número libre y añadir la fila a esta tabla en el mismo commit.

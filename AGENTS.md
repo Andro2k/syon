@@ -24,7 +24,7 @@ para cualquier persona o herramienta que cambie el repositorio.
 ## Disposición de crates
 
 Estado: F1 completa ([WT-0.2.0_01](docs/walkthroughs/WT-0.2.0_01.md)). `syon-domain`, `syon-app`,
-`syon-engine` (arranque, bus de eventos, rutas de datos y registro) y `syon-storage-toml` existen; el
+`syon-engine` (arranque, bus de eventos, rutas de datos, registro, runtime y conectores) y `syon-storage-toml` existen; el
 engine ya lee los ajustes y arranca el registro ([ADR-0010](docs/adr/0010-arranque-del-engine.md)). Los
 demás adaptadores llegan en F2, con el [diseño 001](docs/designs/001-nucleo-dominio-eventos.md) como base.
 
@@ -33,7 +33,7 @@ crates/
   syon-domain/          tipos puros: eventos, usuarios, marca de tiempo (sin I/O ni async)
   syon-app/             puertos (traits) y casos de uso
   syon-storage-toml/    adaptador de ajustes sobre TOML (settings.toml, escritura atómica)
-  syon-engine/          ensambla todo: bus, rutas, logging; corre sin interfaz
+  syon-engine/          ensambla todo: bus, rutas, logging, runtime, conectores; corre sin interfaz
 xtask/                  tareas de mantenimiento (cargo xtask)
 ```
 

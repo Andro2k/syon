@@ -1,8 +1,10 @@
 //! Ensamblado de SYON: aquí viven las piezas que conectan los puertos de `syon-app` con
-//! el mundo real. Por ahora, el arranque, el bus de eventos, las rutas de datos y el registro de diagnóstico.
+//! el mundo real. Por ahora, el arranque, el bus de eventos, las rutas de datos, el registro de diagnóstico, el runtime asíncrono y
+//! el registro de conectores de plataforma.
 
 #![warn(missing_docs)]
 
+mod connectors;
 mod engine;
 mod event_bus;
 mod log_file;

@@ -10,7 +10,7 @@ description = "Ensamblado de SYON: bus de eventos, rutas, logging y conexión de
 syon-app.workspace = true
 syon-domain.workspace = true
 syon-storage-toml.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "time"] }
 log.workspace = true
 env_logger.workspace = true
 etcetera.workspace = true
