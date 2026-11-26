@@ -17,8 +17,9 @@ el trabajo sin depender de una conversación.
   crea el bus ([ADR-0010](adr/0010-arranque-del-engine.md)).
 - Siguiente: **F2 (plataformas)** en curso. El [diseño 002](designs/002-plataformas-kick-twitch.md) está
   aceptado (2026-11-26) y se implementa con su plan de la sección 12, un parche por vez. Parches hechos: 1
-  (diseño), 2 (aceptación) y 3 (`EventKind::Followed`). Sigue el 4: `feat(app)` con `PlatformConnector`,
-  `ConnectionStatus`, `Backoff` y `CredentialStore`.
+  (diseño), 2 (aceptación) y 3 (`EventKind::Followed`) y 4 (puertos de `syon-app`: `PlatformConnector`,
+  `ConnectionStatus`, `Backoff` y `CredentialStore`). Sigue el 5: `feat(engine)`, runtime de `tokio` y
+  registro de conectores, con su ADR.
 
 ## Pendiente de decidir o verificar
 
