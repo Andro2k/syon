@@ -23,6 +23,8 @@ dependencia.
 | sha2 0.10 | Desafío PKCE S256 en `syon-platform-kick` ([ADR-0014](adr/0014-oauth-de-kick.md)) | — | Pre-1.0 |
 | base64 0.22 | Codificación URL-safe sin relleno del PKCE y del `state` | — | Pre-1.0 |
 | rand 0.9 | Bytes aleatorios del `verifier` y del `state` | — | Pre-1.0 |
+| tokio-tungstenite 0.26 (`rustls-tls-webpki-roots`) | WebSocket del feed de Kick y, después, de EventSub de Twitch ([ADR-0015](adr/0015-conexion-al-feed-de-kick.md)) | async-tungstenite, fastwebsockets | Pre-1.0; comparte `rustls` con `reqwest` (solo `ring`) |
+| futures-util 0.3 (`std`, `sink`) | `StreamExt` y `SinkExt` sobre el WebSocket | — | Pre-1.0 |
 
 ## prototypes/kick-console
 

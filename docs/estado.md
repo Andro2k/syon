@@ -20,10 +20,11 @@ el trabajo sin depender de una conversación.
   `EventKind::Followed`, los puertos de `syon-app` (`PlatformConnector`, `ConnectionStatus`, `Backoff` y
   `CredentialStore`), el runtime de `tokio` y el registro de conectores en `syon-engine`
   ([ADR-0011](adr/0011-runtime-asincrono-del-engine.md)), `syon-storage-credentials`
-  ([ADR-0012](adr/0012-almacen-de-credenciales.md)) `syon-platform-kick` con la traducción de eventos
-  (`serde_json`, [ADR-0013](adr/0013-json-tolerante-en-adaptadores.md)) y el OAuth 2.1 con PKCE
-  (`reqwest`, [ADR-0014](adr/0014-oauth-de-kick.md)). Sigue: `feat(kick)`, feed en tiempo real con
-  reconexión y `PlatformConnector` (sección 12, punto 8).
+  ([ADR-0012](adr/0012-almacen-de-credenciales.md)), `syon-platform-kick` con la traducción de eventos
+  (`serde_json`, [ADR-0013](adr/0013-json-tolerante-en-adaptadores.md)), el OAuth 2.1 con PKCE
+  (`reqwest`, [ADR-0014](adr/0014-oauth-de-kick.md)) y el feed en tiempo real con reconexión y
+  `KickConnector` (`tokio-tungstenite`, [ADR-0015](adr/0015-conexion-al-feed-de-kick.md)). Sigue:
+  `feat(twitch)`, OAuth y cliente de la API (sección 12, punto 9).
 
 ## Pendiente de decidir o verificar
 
@@ -46,6 +47,9 @@ el trabajo sin depender de una conversación.
 - Decisión del autor: rechazar o avisar al guardar si el `schema_version` del archivo es mayor que
   `SCHEMA_VERSION`. Hoy un `save` de una versión vieja reescribe el archivo sin las claves que no
   conoce y deja su versión (ADR 0008, consecuencias).
+- El feed de Kick solo se probó con servidores HTTP y WebSocket locales falsos: falta contrastarlo en vivo
+  (nombres de campo, endpoints de `web.kick.com` y `kick.com/api/v2`, el 403 de la consulta del canal
+  y la forma real de las publicaciones).
 - El OAuth de Kick solo se probó con servidores locales falsos: falta un inicio de sesión real contra
   `id.kick.com` (endpoints, permisos y puerto de callback `8080`, que debe estar registrado en la aplicación
   de Kick).

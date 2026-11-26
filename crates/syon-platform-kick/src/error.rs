@@ -65,3 +65,22 @@ impl From<CredentialError> for OAuthError {
         Self::Store(error)
     }
 }
+
+/// No se pudo preparar la conexión al feed de Kick.
+#[derive(Debug)]
+pub enum ConnectError {
+    /// No se pudo inicializar el cliente HTTP (por ejemplo, TLS).
+    Http(String),
+}
+
+impl fmt::Display for ConnectError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Http(detail) => {
+                write!(f, "no se pudo preparar el cliente HTTP de Kick: {detail}")
+            }
+        }
+    }
+}
+
+impl Error for ConnectError {}

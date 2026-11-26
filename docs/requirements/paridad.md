@@ -5,7 +5,7 @@ contra su código antes de cerrar F0. Estados: `Pendiente` · `En curso` · `Hec
 
 | Capacidad | En MiniKick | Fase SYON | Estado |
 |-----------|-------------|-----------|--------|
-| Kick: chat y eventos por WebSocket, OAuth, API pública | Sí | F2 | En curso (prototipo de consola por migrar, WT-0.1.0_01) |
+| Kick: chat y eventos por WebSocket, OAuth, API pública | Sí | F2 | En curso (eventos, OAuth y feed migrados a `syon-platform-kick`; falta el contraste en vivo y la API pública, F3) |
 | Twitch: chat y eventos | Sí | F2 | Pendiente |
 | Chat unificado con 1, 2 o todas las plataformas | Sí | F3 | Pendiente |
 | Comandos (incluidos los de moderador) y filtros de spam | Sí | F3 | Pendiente |

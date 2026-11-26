@@ -1,6 +1,7 @@
 use crate::{
+    clock::now,
     error::OAuthError,
-    oauth_client::{OAuthClient, now},
+    oauth_client::OAuthClient,
     token::{covers, needs_refresh},
 };
 use std::sync::Arc;

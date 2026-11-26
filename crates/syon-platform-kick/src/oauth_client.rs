@@ -1,14 +1,14 @@
 use crate::{
     callback::wait_for_code,
+    clock::now,
     config::KickAppConfig,
     error::OAuthError,
     pkce::{Pkce, random_token},
     token::TokenResponse,
 };
 use reqwest::{Client, Url};
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 use syon_app::Credentials;
-use syon_domain::Timestamp;
 use tokio::{net::TcpListener, time};
 
 const AUTH_URL: &str = "https://id.kick.com/oauth/authorize";
@@ -146,11 +146,6 @@ impl OAuthClient {
     }
 }
 
-/// Hora actual. El dominio no lee el reloj, así que el adaptador la toma aquí.
-pub(crate) fn now() -> Timestamp {
-    Timestamp::from(SystemTime::now())
-}
-
 #[cfg(test)]
 impl OAuthClient {
     /// Cliente de prueba: sin proxy, con el endpoint de tokens dado y un callback que caduca pronto.
@@ -172,6 +167,7 @@ mod tests {
     use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
     use sha2::{Digest, Sha256};
     use std::sync::Mutex;
+    use syon_domain::Timestamp;
     use tokio::{
         io::{AsyncReadExt, AsyncWriteExt},
         net::TcpStream,

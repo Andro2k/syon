@@ -33,6 +33,10 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "rus
 sha2 = "0.10"
 base64 = "0.22"
 rand = "0.9"
+# WebSocket del feed de Kick y, después, de EventSub de Twitch (ADR-0015); TLS con rustls.
+tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+# Solo `SinkExt` y `StreamExt` para leer y escribir en el WebSocket.
+futures-util = { version = "0.3", default-features = false, features = ["std", "sink"] }
 toml = { version = "1", default-features = false, features = ["std", "serde", "parse", "display"] }
 
 [workspace.lints.rust]
