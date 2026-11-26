@@ -19,4 +19,4 @@ contra su código antes de cerrar F0. Estados: `Pendiente` · `En curso` · `Hec
 | Ajustes persistentes en TOML con interfaz de proveedor | Sí | F1 | Hecho (`SettingsStore` en `syon-app`, `syon-storage-toml` y `Engine::start`; hoy solo `[logging]`, el resto se añade con cada fase) |
 | Interfaz de escritorio (temas, iconos, i18n) | Sí | F9 | Pendiente |
 | Instalador y actualizador | Sí | F10 | Pendiente |
-| Registro de diagnóstico en archivo | Sí | F1 | Pendiente |
+| Registro de diagnóstico en archivo | Sí | F1 | Hecho (`syon.log` de 16 MB con rotación, marca por arranque, redacción de secretos y registro de pánicos, [ADR-0006](../adr/0006-registro-de-diagnostico.md)) |
