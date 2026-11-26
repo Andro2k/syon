@@ -16,8 +16,9 @@ el trabajo sin depender de una conversación.
   como `settings.toml.invalid` sin guardar nada encima, inicia el registro con el nivel de los ajustes y
   crea el bus ([ADR-0010](adr/0010-arranque-del-engine.md)).
 - Siguiente: **F2 (plataformas)** en curso. El [diseño 002](designs/002-plataformas-kick-twitch.md) está
-  aceptado (2026-11-26) y se implementa con su plan de la sección 12, un parche por vez. Parche hecho: 1
-  (diseño) y 2 (aceptación). Sigue el 3: `feat(domain)`: `EventKind::Followed`.
+  aceptado (2026-11-26) y se implementa con su plan de la sección 12, un parche por vez. Parches hechos: 1
+  (diseño), 2 (aceptación) y 3 (`EventKind::Followed`). Sigue el 4: `feat(app)` con `PlatformConnector`,
+  `ConnectionStatus`, `Backoff` y `CredentialStore`.
 
 ## Pendiente de decidir o verificar
 

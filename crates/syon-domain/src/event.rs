@@ -82,6 +82,12 @@ pub enum EventKind {
         /// Texto que escribió al canjearla, si la recompensa lo pide.
         input: Option<String>,
     },
+    /// Alguien empezó a seguir el canal. Lo entregan las plataformas que avisan de cada
+    /// seguidor; las que solo informan del total usan [`EventKind::FollowersUpdated`].
+    Followed {
+        /// Nuevo seguidor.
+        user: User,
+    },
     /// Cambió el total de seguidores del canal.
     FollowersUpdated {
         /// Total de seguidores.
@@ -153,6 +159,20 @@ mod tests {
         };
         assert_eq!(kick, kick.clone());
         assert_ne!(kick, twitch);
+    }
+
+    #[test]
+    fn un_seguidor_nuevo_y_el_total_son_eventos_distintos() {
+        let followed = EventKind::Followed {
+            user: User::new("ana"),
+        };
+        assert_eq!(
+            followed,
+            EventKind::Followed {
+                user: User::new("ana")
+            }
+        );
+        assert_ne!(followed, EventKind::FollowersUpdated { count: 1 });
     }
 
     #[test]
