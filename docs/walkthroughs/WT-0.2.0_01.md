@@ -72,6 +72,11 @@ Aplicados con `git am`, en este orden, sobre `master`.
 Además: `56cac9d` y `786c38d` (`docs(design)`: aceptación del diseño 001, sin `thiserror`) y `fddd845`
 (`docs(estado)`: `docs/estado.md` con el estado y el prompt de traspaso).
 
+Después de este cierre: `7e2446b` `feat(engine)`: `Engine::start` y el
+[ADR-0010](../adr/0010-arranque-del-engine.md), que conectan los ajustes TOML con el registro y el
+bus. No es uno de los ocho parches del diseño 001, por eso no figura arriba ni en los archivos
+afectados ni en la verificación, que describe el estado en `6795e97`.
+
 ## Archivos afectados
 
 - Nuevos: `crates/syon-domain/`, `crates/syon-app/`, `crates/syon-engine/` (`event_bus.rs`,
@@ -119,10 +124,11 @@ ejecuta, pero el resultado en Actions, y en particular en Windows, no se ha vist
   Windows; la rotación renombra `syon.log` mientras sigue abierto y la poda reescribe archivos con un
   temporal; los guardados simultáneos del almacén TOML dependen de la plataforma. Hay que confirmar el
   trabajo de Windows de la CI antes de dar F1 por cerrada.
-- **El engine aún no está conectado.** Ningún binario llama a `init_logging` ni carga `settings.toml`.
-  Esa conexión debe hacerse con dos garantías: tras un `SettingsError::Invalid` no se guardan los valores
-  por defecto sobre el archivo (hay que renombrar el roto primero, con su prueba) y se pasa la versión de
-  la aplicación a la marca de arranque.
+- **Ningún binario arranca el engine todavía.** La conexión de los ajustes con el registro se hizo
+  después de este cierre, en `Engine::start` ([ADR-0010](../adr/0010-arranque-del-engine.md)), con las
+  dos garantías que pedía este riesgo: tras un `SettingsError::Invalid` no se guardan valores por defecto
+  sobre el archivo (se aparta como `settings.toml.invalid`) y la versión de la aplicación llega a la marca
+  de arranque. Falta el crate `syon`, que es quien llamará a `Engine::start`.
 - **Versión de esquema.** Un `save` de una versión vieja reescribe el archivo sin las claves que no
   conoce y deja su versión (ADR 0008). Pendiente decidir si rechazar o avisar cuando `schema_version` es
   mayor que `SCHEMA_VERSION`.
