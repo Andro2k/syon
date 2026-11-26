@@ -24,7 +24,7 @@ para cualquier persona o herramienta que cambie el repositorio.
 ## Disposición de crates
 
 Estado: F1 completa ([WT-0.2.0_01](docs/walkthroughs/WT-0.2.0_01.md)). `syon-domain`, `syon-app`,
-`syon-engine` (arranque, bus de eventos, rutas de datos, registro, runtime y conectores), `syon-storage-toml`, `syon-storage-credentials` y `syon-platform-kick` (solo la traducción de eventos) existen; el
+`syon-engine` (arranque, bus de eventos, rutas de datos, registro, runtime y conectores), `syon-storage-toml`, `syon-storage-credentials` y `syon-platform-kick` (traducción de eventos y OAuth) existen; el
 engine ya lee los ajustes y arranca el registro ([ADR-0010](docs/adr/0010-arranque-del-engine.md)). Los
 demás adaptadores llegan en F2, con el [diseño 001](docs/designs/001-nucleo-dominio-eventos.md) como base.
 
@@ -34,7 +34,7 @@ crates/
   syon-app/             puertos (traits) y casos de uso
   syon-storage-toml/    adaptador de ajustes sobre TOML (settings.toml, escritura atómica)
   syon-storage-credentials/  adaptador de tokens OAuth sobre TOML (credentials.toml, permisos 0600)
-  syon-platform-kick/   adaptador de Kick: traduce el feed a eventos del dominio (OAuth y conexión, en F2)
+  syon-platform-kick/   adaptador de Kick: traduce el feed a eventos del dominio (OAuth; la conexión llega en F2)
   syon-engine/          ensambla todo: bus, rutas, logging, runtime, conectores; corre sin interfaz
 xtask/                  tareas de mantenimiento (cargo xtask)
 ```

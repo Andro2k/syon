@@ -20,9 +20,10 @@ el trabajo sin depender de una conversación.
   `EventKind::Followed`, los puertos de `syon-app` (`PlatformConnector`, `ConnectionStatus`, `Backoff` y
   `CredentialStore`), el runtime de `tokio` y el registro de conectores en `syon-engine`
   ([ADR-0011](adr/0011-runtime-asincrono-del-engine.md)), `syon-storage-credentials`
-  ([ADR-0012](adr/0012-almacen-de-credenciales.md)) y `syon-platform-kick` con la traducción de eventos
-  (`serde_json`, [ADR-0013](adr/0013-json-tolerante-en-adaptadores.md)). Sigue: `feat(kick)`, OAuth 2.1 con
-  PKCE y renovación de tokens por `CredentialStore` (sección 12, punto 7).
+  ([ADR-0012](adr/0012-almacen-de-credenciales.md)) `syon-platform-kick` con la traducción de eventos
+  (`serde_json`, [ADR-0013](adr/0013-json-tolerante-en-adaptadores.md)) y el OAuth 2.1 con PKCE
+  (`reqwest`, [ADR-0014](adr/0014-oauth-de-kick.md)). Sigue: `feat(kick)`, feed en tiempo real con
+  reconexión y `PlatformConnector` (sección 12, punto 8).
 
 ## Pendiente de decidir o verificar
 
@@ -43,6 +44,9 @@ el trabajo sin depender de una conversación.
   archivos con un temporal; en Linux pasan 25 de 25 ejecuciones seguidas.
 - Los permisos del archivo de credenciales no se comprueban en Windows (solo en Unix): confirmarlo al
   aplicar el parche 6 y al iniciar sesión por primera vez.
+- El OAuth de Kick solo se probó con servidores locales falsos: falta un inicio de sesión real contra
+  `id.kick.com` (endpoints, permisos y puerto de callback `8080`, que debe estar registrado en la aplicación
+  de Kick).
 - Ningún binario llama todavía a `Engine::start`: las pruebas de `crates/syon-engine/tests/` son su
   único uso. Al crear el crate `syon`, pasarle `env!("CARGO_PKG_VERSION")` y decidir cómo avisa un
   `StartError`.

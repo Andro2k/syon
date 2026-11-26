@@ -21,6 +21,7 @@ Estados: `Propuesta` · `Aceptada` · `Reemplazada por ADR-NNNN` · `Descartada`
 | [0011](0011-runtime-asincrono-del-engine.md) | Runtime asíncrono propiedad del engine | Aceptada |
 | [0012](0012-almacen-de-credenciales.md) | Almacén de credenciales en un archivo TOML con permisos restringidos | Aceptada |
 | [0013](0013-json-tolerante-en-adaptadores.md) | JSON tolerante con `serde_json::Value` en los adaptadores de plataforma | Aceptada |
+| [0014](0014-oauth-de-kick.md) | OAuth 2.1 de Kick con PKCE, callback local y cliente HTTP `reqwest` | Aceptada |
 
 Para crear uno nuevo: copiar [0000-plantilla.md](0000-plantilla.md), usar el
 siguiente número libre y añadir la fila a esta tabla en el mismo commit.

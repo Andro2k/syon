@@ -19,6 +19,10 @@ dependencia.
 | toml 1 (`std`, `serde`, `parse`, `display`) | Leer y escribir `settings.toml` en `syon-storage-toml` ([ADR-0008](adr/0008-configuracion-toml.md)) | toml_edit, si hace falta conservar comentarios | Bajo; trae `winnow` y los crates `toml_*` y `serde_spanned` (MIT o Apache-2.0) |
 | serde 1 (`derive`) | Serializar el formato del archivo; solo `syon-storage-toml` lo usa ([ADR-0008](adr/0008-configuracion-toml.md)) | Escribir el TOML a mano | Bajo; la derivación suma `syn`, `quote` y `proc-macro2` al tiempo de compilación |
 | serde_json 1 | Lectura tolerante de los eventos de las plataformas, en los adaptadores `syon-platform-*` ([ADR-0013](adr/0013-json-tolerante-en-adaptadores.md)) | Structs con `derive(Deserialize)`; simd-json | Bajo; trae `itoa`, `ryu` y `memchr` (MIT o Apache-2.0) |
+| reqwest 0.12 (`json`, `rustls-tls`) | Cliente HTTP del OAuth de Kick y, después, de las APIs de las plataformas, en `syon-platform-*` ([ADR-0014](adr/0014-oauth-de-kick.md)) | ureq, hyper | Pre-1.0: actualizar con parche propio; trae `hyper`, `rustls` y `ring` |
+| sha2 0.10 | Desafío PKCE S256 en `syon-platform-kick` ([ADR-0014](adr/0014-oauth-de-kick.md)) | — | Pre-1.0 |
+| base64 0.22 | Codificación URL-safe sin relleno del PKCE y del `state` | — | Pre-1.0 |
+| rand 0.9 | Bytes aleatorios del `verifier` y del `state` | — | Pre-1.0 |
 
 ## prototypes/kick-console
 

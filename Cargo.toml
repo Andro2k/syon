@@ -27,6 +27,12 @@ etcetera = "0.11"
 serde = { version = "1", features = ["derive"] }
 # Interpretación tolerante de los datos de las plataformas (ADR-0013): solo los adaptadores lo usan.
 serde_json = "1"
+# Cliente HTTP del OAuth y de las APIs de las plataformas (ADR-0014); rustls en lugar de OpenSSL.
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+# PKCE de Kick (ADR-0014): hash SHA-256, base64 sin relleno y bytes aleatorios.
+sha2 = "0.10"
+base64 = "0.22"
+rand = "0.9"
 toml = { version = "1", default-features = false, features = ["std", "serde", "parse", "display"] }
 
 [workspace.lints.rust]
