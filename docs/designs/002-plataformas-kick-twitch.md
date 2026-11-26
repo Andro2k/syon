@@ -1,6 +1,6 @@
 # Diseño 002: plataformas de F2 (Kick y Twitch)
 
-- Estado: Propuesta
+- Estado: Aceptado (2026-11-26)
 - Fase: F2
 - Fecha: 2026-11-26
 
@@ -77,7 +77,7 @@ No se añade un puerto de envío de chat: F3 lo diseña cuando haya un consumido
   usuario en Unix; en Windows se confía en la carpeta del perfil del usuario.
 - El adaptador es `syon-storage-credentials` (formato JSON o TOML, escritura atómica como el almacén
   de ajustes). Su ADR cubre el formato y las alternativas, entre ellas el llavero del sistema
-  (decisión abierta 2).
+  (decisión 2).
 - `client_secret` de Kick sigue viniendo del entorno o de los ajustes, nunca del archivo de tokens.
 
 ## 6. Kick
@@ -102,7 +102,7 @@ deja de funcionar. Se migra por módulos del prototipo:
 
 ## 7. Twitch
 
-EventSub por WebSocket con token de usuario (OAuth, flujo por determinar, decisión abierta 3). No
+EventSub por WebSocket con token de usuario (OAuth, flujo por determinar, decisión 3). No
 requiere URL pública. Eventos previstos y su traducción:
 
 | Suscripción de Twitch | `EventKind` |
@@ -179,16 +179,20 @@ funciones de `tokio` (el prototipo usa `full`). `dotenvy`, `chrono` y `anyhow` n
 - Contraste en vivo, pendiente del autor: nombres de campo de Kick y `cost` real de Twitch.
 - Todo en verde en CI, incluidos `cargo deny` y `arch-check`.
 
-## 14. Decisiones abiertas
+## 14. Decisiones
 
-1. **Feed no oficial de Kick o webhooks:** propuesta en la sección 6; el autor decide.
-2. **Dónde guardar tokens:** archivo en la carpeta de datos (propuesta) o llavero del sistema, que
-   añade una dependencia y un comportamiento distinto por sistema.
-3. **OAuth de Twitch:** flujo de código con callback local (como Kick) o de dispositivo (sin
-   servidor local). Cambia los permisos y la experiencia de inicio de sesión.
-4. **Enviar chat:** los permisos de escritura se piden desde el primer inicio de sesión para no obligar a
-   volver a autorizar en F3, o se piden después.
-5. **Seguidores:** `Followed` junto a `FollowersUpdated` (propuesta) o un único tipo.
+El autor pidió aplicar la fase el 2026-11-26 sin objetar el diseño; se toman las propuestas de este
+documento como decididas y se revisan si algo cambia:
+
+1. **Kick:** feed no oficial para recibir; OAuth y API públicas para autenticar (sección 6). Los
+   webhooks quedan como alternativa futura.
+2. **Tokens:** archivo propio en la carpeta de datos con permisos restringidos en Unix (sección 5).
+   El llavero del sistema se reconsidera si hace falta.
+3. **OAuth de Twitch:** flujo de código con callback local, igual que Kick, para compartir el
+   mismo patrón y no sumar un segundo flujo al código.
+4. **Permisos de escritura:** se piden desde el primer inicio de sesión para no obligar a
+   autorizar de nuevo en F3.
+5. **Seguidores:** `Followed` junto a `FollowersUpdated` (sección 8).
 
 ## 15. Riesgos
 

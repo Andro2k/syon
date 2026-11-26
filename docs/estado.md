@@ -15,15 +15,12 @@ el trabajo sin depender de una conversación.
 - Parche de conexión: `Engine::start` lee los ajustes con `syon-storage-toml`, aparta un archivo inválido
   como `settings.toml.invalid` sin guardar nada encima, inicia el registro con el nivel de los ajustes y
   crea el bus ([ADR-0010](adr/0010-arranque-del-engine.md)).
-- Siguiente: **F2 (plataformas)**. El [diseño 002](designs/002-plataformas-kick-twitch.md) está escrito
-  como **Propuesta** y espera la aceptación del autor; sin ella no se escribe código de F2 (regla «diseño
-  antes que código»). Cuando se acepte, sigue su plan de la sección 12, un parche por vez, empezando por
-  `feat(domain)`: `EventKind::Followed`.
+- Siguiente: **F2 (plataformas)** en curso. El [diseño 002](designs/002-plataformas-kick-twitch.md) está
+  aceptado (2026-11-26) y se implementa con su plan de la sección 12, un parche por vez. Parche hecho: 1
+  (diseño) y 2 (aceptación). Sigue el 3: `feat(domain)`: `EventKind::Followed`.
 
 ## Pendiente de decidir o verificar
 
-- Aceptar o corregir el [diseño 002](designs/002-plataformas-kick-twitch.md) y resolver sus cinco decisiones
-  abiertas (sección 14): feed de Kick, almacén de tokens, OAuth de Twitch, permisos de escritura y seguidores.
 - Los límites de Twitch del diseño 002 (300 suscripciones por conexión, 3 conexiones, `max_total_cost` de
   10 con token de usuario, coste 0 con permiso del usuario) salen de documentación y foros consultados el
   2026-11-26; el plazo de bienvenida y el coste real se confirman en vivo al implementar.
