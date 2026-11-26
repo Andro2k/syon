@@ -3,6 +3,8 @@
 - Estado: Aceptado (2026-11-26)
 - Fase: F2
 - Fecha: 2026-11-26
+- Revisión: 2026-11-26, el trabajo de Kick de la sección 12 se divide en tres parches (eventos, OAuth y feed)
+  porque juntos serían demasiado grandes para revisarlos como un cambio atómico.
 
 ## 1. Objetivo y alcance
 
@@ -162,12 +164,13 @@ funciones de `tokio` (el prototipo usa `full`). `dotenvy`, `chrono` y `anyhow` n
 3. `feat(app)`: `PlatformConnector`, `ConnectionStatus`, `Backoff` y `CredentialStore`.
 4. `feat(engine)`: runtime de `tokio` y registro de conectores, con su ADR.
 5. `feat(storage)`: `syon-storage-credentials` y su ADR.
-6. `feat(kick)`: crate con la traducción de eventos y el OAuth.
-7. `feat(kick)`: feed en tiempo real con reconexión.
-8. `feat(twitch)`: OAuth y cliente de la API.
-9. `feat(twitch)`: EventSub por WebSocket.
-10. `feat(syon)`: binario que llama a `Engine::start` y decide cómo avisa un `StartError`.
-11. `docs`: `docs/architecture/suscripciones.md`, tabla de paridad, `docs/deps.md` y el walkthrough.
+6. `feat(kick)`: crate con la traducción de eventos, `serde_json` y su ADR.
+7. `feat(kick)`: OAuth 2.1 con PKCE y renovación de tokens por `CredentialStore`.
+8. `feat(kick)`: feed en tiempo real con reconexión y `PlatformConnector`.
+9. `feat(twitch)`: OAuth y cliente de la API.
+10. `feat(twitch)`: EventSub por WebSocket.
+11. `feat(syon)`: binario que llama a `Engine::start` y decide cómo avisa un `StartError`.
+12. `docs`: `docs/architecture/suscripciones.md`, tabla de paridad, `docs/deps.md` y el walkthrough.
 
 ## 13. Criterio de salida de F2
 

@@ -14,6 +14,7 @@ syon-domain = { path = "crates/syon-domain" }
 syon-app = { path = "crates/syon-app" }
 syon-storage-toml = { path = "crates/syon-storage-toml" }
 syon-storage-credentials = { path = "crates/syon-storage-credentials" }
+syon-platform-kick = { path = "crates/syon-platform-kick" }
 
 # Dependencias externas (ADR-0004): cada una tiene su fila en docs/deps.md.
 tokio = { version = "1", default-features = false, features = ["sync"] }
@@ -24,6 +25,8 @@ env_logger = "0.11"
 etcetera = "0.11"
 # Formato de settings.toml (ADR-0008): solo lo usa syon-storage-toml; syon-app no depende de serde.
 serde = { version = "1", features = ["derive"] }
+# Interpretación tolerante de los datos de las plataformas (ADR-0013): solo los adaptadores lo usan.
+serde_json = "1"
 toml = { version = "1", default-features = false, features = ["std", "serde", "parse", "display"] }
 
 [workspace.lints.rust]

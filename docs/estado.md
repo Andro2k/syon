@@ -16,12 +16,13 @@ el trabajo sin depender de una conversación.
   como `settings.toml.invalid` sin guardar nada encima, inicia el registro con el nivel de los ajustes y
   crea el bus ([ADR-0010](adr/0010-arranque-del-engine.md)).
 - Siguiente: **F2 (plataformas)** en curso. El [diseño 002](designs/002-plataformas-kick-twitch.md) está
-  aceptado (2026-11-26) y se implementa con su plan de la sección 12, un parche por vez. Hechos: 1 (diseño),
-  2 (aceptación), 3 (`EventKind::Followed`), 4 (puertos de `syon-app`: `PlatformConnector`,
-  `ConnectionStatus`, `Backoff` y `CredentialStore`) 5 (`syon-engine`: runtime de `tokio`, registro de
-  conectores y [ADR-0011](adr/0011-runtime-asincrono-del-engine.md)) y 6 (`syon-storage-credentials` y
-  [ADR-0012](adr/0012-almacen-de-credenciales.md)). Sigue el 7: `feat(kick)`, crate
-  `syon-platform-kick` con la traducción de eventos y el OAuth.
+  aceptado (2026-11-26) y se implementa con su plan de la sección 12, un parche por vez. Hecho: el diseño,
+  `EventKind::Followed`, los puertos de `syon-app` (`PlatformConnector`, `ConnectionStatus`, `Backoff` y
+  `CredentialStore`), el runtime de `tokio` y el registro de conectores en `syon-engine`
+  ([ADR-0011](adr/0011-runtime-asincrono-del-engine.md)), `syon-storage-credentials`
+  ([ADR-0012](adr/0012-almacen-de-credenciales.md)) y `syon-platform-kick` con la traducción de eventos
+  (`serde_json`, [ADR-0013](adr/0013-json-tolerante-en-adaptadores.md)). Sigue: `feat(kick)`, OAuth 2.1 con
+  PKCE y renovación de tokens por `CredentialStore` (sección 12, punto 7).
 
 ## Pendiente de decidir o verificar
 
