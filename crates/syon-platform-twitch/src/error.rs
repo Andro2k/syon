@@ -65,3 +65,38 @@ impl From<CredentialError> for OAuthError {
         Self::Store(error)
     }
 }
+
+/// Fallo al hablar con la API de Twitch (Helix o el servicio de validación). Ningún mensaje incluye
+/// tokens ni el contenido de una respuesta ilegible.
+#[derive(Debug, PartialEq, Eq)]
+pub enum ApiError {
+    /// Fallo de red o no se pudo preparar el cliente HTTP.
+    Network(String),
+    /// Twitch rechazó el token (401): está vencido, revocado o no es válido. Quien llama puede
+    /// renovarlo y reintentar.
+    Unauthorized,
+    /// Twitch rechazó la petición por otro motivo (permisos, datos, límite de suscripciones...).
+    Rejected {
+        /// Código HTTP de la respuesta.
+        status: u16,
+        /// Primeros caracteres del cuerpo de la respuesta.
+        body: String,
+    },
+    /// La respuesta no es JSON o le falta un campo imprescindible.
+    Unreadable(String),
+}
+
+impl fmt::Display for ApiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Network(detail) => write!(f, "no se pudo hablar con Twitch: {detail}"),
+            Self::Unauthorized => f.write_str("Twitch rechazó el token (401): vencido o revocado"),
+            Self::Rejected { status, body } => {
+                write!(f, "Twitch respondió {status}: {body}")
+            }
+            Self::Unreadable(detail) => write!(f, "respuesta de Twitch ilegible: {detail}"),
+        }
+    }
+}
+
+impl Error for ApiError {}

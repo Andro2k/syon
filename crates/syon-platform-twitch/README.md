@@ -1,9 +1,9 @@
 # syon-platform-twitch
 
 Adaptador de Twitch (F2, [diseño 002](../../docs/designs/002-plataformas-kick-twitch.md)). Gestiona el
-inicio de sesión OAuth. Sigue la estructura de [`syon-platform-kick`](../syon-platform-kick/README.md),
-del que no depende. La API de Helix y los eventos de EventSub por WebSocket llegan en los parches
-siguientes del mismo paso.
+inicio de sesión OAuth y ofrece un cliente mínimo de la API de Helix. Sigue la estructura de
+[`syon-platform-kick`](../syon-platform-kick/README.md), del que no depende. Los eventos de EventSub
+por WebSocket llegan en los parches siguientes.
 
 ## Qué hace
 
@@ -21,14 +21,27 @@ siguientes del mismo paso.
 - Los errores (`OAuthError`) nunca incluyen tokens, el `client_secret` ni el contenido de una respuesta
   ilegible; `TwitchAppConfig` implementa `Debug` sin el secreto.
 
+### Cliente de la API ([ADR-0016](../../docs/adr/0016-oauth-y-api-de-twitch.md))
+
+- `TwitchApi` hace solo tres cosas, y no guarda tokens (cada llamada recibe el suyo, con las cabeceras
+  `Authorization` y `Client-Id`):
+  - `validate(token)` consulta `https://id.twitch.tv/oauth2/validate` y devuelve quién autorizó y sus
+    permisos. El `user_id` es el id del canal que se escucha.
+  - `create_subscription(token, petición, session_id)` crea una suscripción de EventSub por WebSocket y
+    devuelve `cost`, `total_cost` y `max_total_cost` tal como los entrega Twitch (`None` si faltan).
+  - `list_subscriptions(token, cursor)` lista una página de suscripciones con su estado y coste.
+- Un 401 es `ApiError::Unauthorized`, para que quien llama renueve el token y reintente. Ningún error
+  incluye el token ni el contenido de una respuesta ilegible.
+
 ## Qué no hace
 
 - No lee `.env`, el entorno ni los ajustes: `TwitchAppConfig` llega por constructor. De dónde sale el
   `client_secret` lo decide el autor (pendiente 6 del diseño).
 - No abre el navegador ni crea el runtime del engine.
-- No envía mensajes ni modera (F3).
+- No envía mensajes ni modera (F3). No consulta otros canales: solo resuelve el del usuario que inició
+  sesión.
 - Los endpoints de `id.twitch.tv`, el formato de la respuesta y los permisos salen de la documentación de
-  Twitch y no se han contrastado en vivo; el OAuth se prueba con servidores locales falsos. El permiso
+  Twitch y no se han contrastado en vivo; el OAuth y la API se prueban con servidores locales falsos. El permiso
   `moderator:read:followers` está sin contrastar (ver el ADR).
 
 ## API pública
@@ -39,7 +52,9 @@ siguientes del mismo paso.
 | `OAuthClient::new(config)` | Cliente OAuth: `login(on_url)`, `refresh(&credenciales)` y `client_id()` |
 | `TokenManager::start(oauth, almacén, on_url)` | Deja lista la sesión; devuelve su `Source` |
 | `TokenManager::access_token()` / `force_refresh()` / `client_id()` | Token vigente, renovado si hace falta |
-| `OAuthError` | Fallos tipados del inicio de sesión y de la renovación |
+| `TwitchApi::new(client_id)` | Cliente de Helix: `validate`, `create_subscription` y `list_subscriptions` |
+| `TokenInfo`, `SubscriptionRequest`, `CreatedSubscription`, `SubscriptionList` | Datos que entran y salen de la API |
+| `OAuthError` / `ApiError` | Fallos tipados del inicio de sesión y de la API |
 | `DEFAULT_REDIRECT_URI` / `DEFAULT_SCOPES` | Callback y permisos por defecto |
 
-Dependencias: `syon-app`, `syon-domain`, `serde`, `reqwest`, `base64`, `rand`, `log` y `tokio`.
+Dependencias: `syon-app`, `syon-domain`, `serde`, `serde_json`, `reqwest`, `base64`, `rand`, `log` y `tokio`.
