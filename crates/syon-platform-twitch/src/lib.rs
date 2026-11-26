@@ -10,6 +10,7 @@ mod callback;
 mod clock;
 mod config;
 mod error;
+mod events;
 mod oauth_client;
 mod session;
 #[cfg(test)]
@@ -22,5 +23,6 @@ pub use api::{
 };
 pub use config::{DEFAULT_REDIRECT_URI, DEFAULT_SCOPES, TwitchAppConfig};
 pub use error::{ApiError, OAuthError};
+pub use events::event_from_notification;
 pub use oauth_client::OAuthClient;
 pub use session::{Source, TokenManager};
