@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 2026-11-25. Se actualiza en el mismo parche que completa un paso del
+Última actualización: 2026-11-26. Se actualiza en el mismo parche que completa un paso del
 plan (regla 7 de [AGENTS.md](../AGENTS.md)), para que cualquier persona o IA pueda retomar
 el trabajo sin depender de una conversación.
 
@@ -15,13 +15,18 @@ el trabajo sin depender de una conversación.
 - Parche de conexión: `Engine::start` lee los ajustes con `syon-storage-toml`, aparta un archivo inválido
   como `settings.toml.invalid` sin guardar nada encima, inicia el registro con el nivel de los ajustes y
   crea el bus ([ADR-0010](adr/0010-arranque-del-engine.md)).
-- Siguiente: **F2 (plataformas)**: migrar Kick desde el prototipo y añadir Twitch, con el presupuesto de
-  suscripciones por plataforma ([roadmap](roadmap.md)). Empieza con su diseño en `docs/designs/`
-  (regla «diseño antes que código»); el crate `syon` (binario) que llame a `Engine::start` se crea con
-  su fase.
+- Siguiente: **F2 (plataformas)**. El [diseño 002](designs/002-plataformas-kick-twitch.md) está escrito
+  como **Propuesta** y espera la aceptación del autor; sin ella no se escribe código de F2 (regla «diseño
+  antes que código»). Cuando se acepte, sigue su plan de la sección 12, un parche por vez, empezando por
+  `feat(domain)`: `EventKind::Followed`.
 
 ## Pendiente de decidir o verificar
 
+- Aceptar o corregir el [diseño 002](designs/002-plataformas-kick-twitch.md) y resolver sus cinco decisiones
+  abiertas (sección 14): feed de Kick, almacén de tokens, OAuth de Twitch, permisos de escritura y seguidores.
+- Los límites de Twitch del diseño 002 (300 suscripciones por conexión, 3 conexiones, `max_total_cost` de
+  10 con token de usuario, coste 0 con permiso del usuario) salen de documentación y foros consultados el
+  2026-11-26; el plazo de bienvenida y el coste real se confirman en vivo al implementar.
 - Motores de TTS: se eligen en F4 con su ADR.
 - Interfaz: GPUI directo ([ADR-0005](adr/0005-ui-gpui-directo.md)); el spike de F9 valida los criterios.
 - La prueba de `AppPaths` en Windows (`%APPDATA%`, `%LOCALAPPDATA%`) solo corre en el trabajo de Windows de la CI: confirmar que pasó al aplicar el parche 5.
