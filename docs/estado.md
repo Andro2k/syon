@@ -27,6 +27,9 @@ el trabajo sin depender de una conversación.
 
 ## Pendiente de decidir o verificar
 
+- Decidir dónde vive el `client_secret` de Kick ([diseño 002](designs/002-plataformas-kick-twitch.md),
+  sección 14, pendiente 6) antes de conectar `KickAppConfig` en el engine o el binario (ADR-0014): no
+  puede ir en `settings.toml`.
 - Los límites de Twitch del diseño 002 (300 suscripciones por conexión, 3 conexiones, `max_total_cost` de
   10 con token de usuario, coste 0 con permiso del usuario) salen de documentación y foros consultados el
   2026-11-26; el plazo de bienvenida y el coste real se confirman en vivo al implementar.

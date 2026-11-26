@@ -80,7 +80,9 @@ No se añade un puerto de envío de chat: F3 lo diseña cuando haya un consumido
 - El adaptador es `syon-storage-credentials` (formato JSON o TOML, escritura atómica como el almacén
   de ajustes). Su ADR cubre el formato y las alternativas, entre ellas el llavero del sistema
   (decisión 2).
-- `client_secret` de Kick sigue viniendo del entorno o de los ajustes, nunca del archivo de tokens.
+- El `client_secret` de Kick es un secreto de la aplicación, no de la persona: no va en `settings.toml`
+  (que se edita a mano y se comparte al reportar un problema) ni en el archivo de tokens. De dónde
+  viene queda por decidir (sección 14, pendiente 6).
 
 ## 6. Kick
 
@@ -196,6 +198,16 @@ documento como decididas y se revisan si algo cambia:
 4. **Permisos de escritura:** se piden desde el primer inicio de sesión para no obligar a
    autorizar de nuevo en F3.
 5. **Seguidores:** `Followed` junto a `FollowersUpdated` (sección 8).
+
+**Pendiente, no cubierto por la aceptación:**
+
+6. **Dónde vive el `client_secret` de Kick:** variable de entorno, como hacía el prototipo con `.env`
+   (sin migrar `dotenvy`), o una entrada de aplicación en el almacén de credenciales. `Settings` no
+   tiene ese campo y no debe tenerlo (el diseño 001 ya señala como defecto del prototipo que lo
+   mezclara con los ajustes). Una aplicación de escritorio distribuida no puede guardar un secreto de
+   aplicación de forma confidencial; si Kick lo exige con PKCE, hay que decidir qué se acepta. El OAuth ya
+   recibe el valor en `KickAppConfig::new(client_id, client_secret)` y el ADR-0014 deja que lo decida el
+   engine o el binario: debe resolverse antes de conectar esa configuración.
 
 ## 15. Riesgos
 
