@@ -1,6 +1,6 @@
 # Diseño 001: núcleo de F1 (dominio, bus de eventos, configuración y logging)
 
-- Estado: Aceptado (2026-11-25)
+- Estado: Implementado (aceptado el 2026-11-25; cerrado con el [walkthrough WT-0.2.0_01](../walkthroughs/WT-0.2.0_01.md))
 - Fase: F1
 - Fecha: 2026-11-24
 - Revisión: 2026-11-25, tras contrastar el diseño con Sonora (sección 16)
