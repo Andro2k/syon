@@ -191,6 +191,76 @@ mod tests {
         assert_eq!(loaded.schema_version, 1);
     }
 
+    fn kick_settings() -> Settings {
+        let mut settings = Settings::default();
+        settings.kick.enabled = true;
+        settings.kick.channel = "mi_canal".to_string();
+        settings.kick.channel_id = Some(123);
+        settings.kick.chatroom_id = Some(456);
+        settings
+    }
+
+    #[test]
+    fn guardar_y_cargar_devuelve_la_seccion_kick_completa() {
+        let dir = TempDir::new();
+        let store = TomlSettingsStore::new(dir.file());
+        store.save(&kick_settings()).unwrap();
+        let text = fs::read_to_string(dir.file()).unwrap();
+        assert!(text.contains("[kick]"));
+        assert!(text.contains("channel = \"mi_canal\""));
+        assert_eq!(store.load().unwrap(), kick_settings());
+    }
+
+    #[test]
+    fn los_ids_de_kick_sin_definir_no_se_escriben() {
+        let dir = TempDir::new();
+        let store = TomlSettingsStore::new(dir.file());
+        let mut settings = kick_settings();
+        settings.kick.channel_id = None;
+        settings.kick.chatroom_id = None;
+        store.save(&settings).unwrap();
+        let text = fs::read_to_string(dir.file()).unwrap();
+        assert!(!text.contains("channel_id"));
+        assert!(!text.contains("chatroom_id"));
+        assert_eq!(store.load().unwrap(), settings);
+    }
+
+    #[test]
+    fn un_archivo_de_f1_sin_la_seccion_kick_sigue_cargando() {
+        let dir = TempDir::new();
+        fs::write(
+            dir.file(),
+            "schema_version = 1\n[logging]\nlevel = \"warn\"\n",
+        )
+        .unwrap();
+        let loaded = TomlSettingsStore::new(dir.file()).load().unwrap();
+        assert_eq!(loaded.logging.level, LogLevel::Warn);
+        assert_eq!(loaded.kick, Default::default());
+    }
+
+    #[test]
+    fn kick_ignora_claves_desconocidas_y_lee_las_conocidas() {
+        let dir = TempDir::new();
+        fs::write(
+            dir.file(),
+            "[kick]\nenabled = true\nchannel = \"x\"\nchatroom_id = 7\nfutura = 1\n",
+        )
+        .unwrap();
+        let loaded = TomlSettingsStore::new(dir.file()).load().unwrap();
+        assert!(loaded.kick.enabled);
+        assert_eq!(loaded.kick.channel, "x");
+        assert_eq!(loaded.kick.channel_id, None);
+        assert_eq!(loaded.kick.chatroom_id, Some(7));
+    }
+
+    #[test]
+    fn un_tipo_incorrecto_en_kick_nombra_la_clave() {
+        let dir = TempDir::new();
+        fs::write(dir.file(), "[kick]\nenabled = \"si\"\n").unwrap();
+        let error = TomlSettingsStore::new(dir.file()).load().unwrap_err();
+        assert!(error.to_string().contains("kick.enabled"), "{error}");
+    }
+
     #[test]
     fn las_claves_ausentes_toman_su_valor_por_defecto() {
         let dir = TempDir::new();

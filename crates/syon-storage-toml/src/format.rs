@@ -9,12 +9,24 @@ use toml::{Table, Value};
 struct SettingsFile {
     schema_version: u32,
     logging: LoggingSection,
+    kick: KickSection,
 }
 
 /// Sección `[logging]`.
 #[derive(Serialize)]
 struct LoggingSection {
     level: LevelName,
+}
+
+/// Sección `[kick]`. Los ids opcionales se omiten cuando no están definidos.
+#[derive(Serialize)]
+struct KickSection {
+    enabled: bool,
+    channel: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    channel_id: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chatroom_id: Option<u64>,
 }
 
 /// Nombre del nivel de log tal como se escribe en el archivo.
@@ -59,6 +71,12 @@ pub(crate) fn render(settings: &Settings) -> Result<String, toml::ser::Error> {
         logging: LoggingSection {
             level: settings.logging.level.into(),
         },
+        kick: KickSection {
+            enabled: settings.kick.enabled,
+            channel: settings.kick.channel.clone(),
+            channel_id: settings.kick.channel_id,
+            chatroom_id: settings.kick.chatroom_id,
+        },
     })
 }
 
@@ -77,6 +95,14 @@ pub(crate) fn parse(text: &str) -> Result<Settings, String> {
     if let Some(level) = read::<LevelName>(&table, &["logging", "level"])? {
         settings.logging.level = level.into();
     }
+    if let Some(enabled) = read::<bool>(&table, &["kick", "enabled"])? {
+        settings.kick.enabled = enabled;
+    }
+    if let Some(channel) = read::<String>(&table, &["kick", "channel"])? {
+        settings.kick.channel = channel;
+    }
+    settings.kick.channel_id = read::<u64>(&table, &["kick", "channel_id"])?;
+    settings.kick.chatroom_id = read::<u64>(&table, &["kick", "chatroom_id"])?;
     Ok(settings)
 }
 

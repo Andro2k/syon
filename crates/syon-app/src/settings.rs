@@ -9,6 +9,8 @@ pub struct Settings {
     pub schema_version: u32,
     /// Ajustes del registro de diagnóstico.
     pub logging: LoggingSettings,
+    /// Ajustes de la conexión a Kick.
+    pub kick: KickSettings,
 }
 
 impl Default for Settings {
@@ -16,6 +18,7 @@ impl Default for Settings {
         Self {
             schema_version: SCHEMA_VERSION,
             logging: LoggingSettings::default(),
+            kick: KickSettings::default(),
         }
     }
 }
@@ -25,6 +28,22 @@ impl Default for Settings {
 pub struct LoggingSettings {
     /// Nivel mínimo que se escribe en el archivo de log.
     pub level: LogLevel,
+}
+
+/// Ajustes de la conexión a Kick. Por defecto la plataforma está desactivada y sin canal.
+/// Aquí no van el `client_id` ni el `client_secret` de la aplicación: no son ajustes de la
+/// persona (ver ADR-0018).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct KickSettings {
+    /// Si el engine debe conectar con Kick al arrancar las plataformas.
+    pub enabled: bool,
+    /// Nombre (slug) del canal que se escucha. Vacío significa que no hay canal elegido.
+    pub channel: String,
+    /// Id numérico del canal. Junto con `chatroom_id` evita consultar a Kick, que a veces
+    /// responde 403.
+    pub channel_id: Option<u64>,
+    /// Id numérico de la sala de chat. Solo se usa si `channel_id` también está definido.
+    pub chatroom_id: Option<u64>,
 }
 
 /// Nivel de detalle del registro. `Info` es el valor por defecto porque el texto
@@ -53,5 +72,14 @@ mod tests {
         let settings = Settings::default();
         assert_eq!(settings.schema_version, SCHEMA_VERSION);
         assert_eq!(settings.logging.level, LogLevel::Info);
+    }
+
+    #[test]
+    fn kick_esta_desactivado_y_sin_canal_por_defecto() {
+        let kick = Settings::default().kick;
+        assert!(!kick.enabled);
+        assert!(kick.channel.is_empty());
+        assert_eq!(kick.channel_id, None);
+        assert_eq!(kick.chatroom_id, None);
     }
 }
