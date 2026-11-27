@@ -38,13 +38,15 @@ el trabajo sin depender de una conversación.
   `PlatformCredentials`, `Engine::start_platforms` y `stop_platforms` para Kick, aplicado como b7882aa (sin las credenciales ni el
   enlace de inicio de sesión, que llegan con Twitch en el parche 7). Parche 5 hecho: `Engine::login` para Kick (`LoginOutcome`, `LoginError`; Twitch
   devuelve `Unsupported` hasta el parche 7). Parche 6 hecho: el crate binario `syon` con `run`, `login`, resolución de credenciales,
-  `build.rs` y la salida de eventos (aplicado como 635d6f9; el 5 como ee79974). Parche 7 hecho: la sección `[twitch]` (`enabled`) en los ajustes. Siguen el
-  cableado de Twitch en el engine y el binario (8) y la documentación de cierre (9).
+  `build.rs` y la salida de eventos (aplicado como 635d6f9; el 5 como ee79974). Parche 7 hecho: la sección `[twitch]` (`enabled`) en los ajustes. Parche 8 hecho: Twitch cableado en el
+  engine y el binario (`start_platforms` recibe las credenciales y un callback para el enlace de inicio
+  de sesión; `login` admite Twitch; `LoginError::Unsupported` desaparece). Sigue la documentación de
+  cierre (9).
 
 ## Pendiente de decidir o verificar
 
 - Aceptar o corregir el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md) (decisiones de su
-  sección 11); los parches 2 a 7 se adelantaron sin aceptarlo, así que conviene decidirlo antes de los parches 8 y 9.
+  sección 11); los parches 2 a 8 se adelantaron sin aceptarlo, así que conviene decidirlo antes del parche 9.
 - Antes de publicar (F10): verificar los términos de Kick y de Twitch sobre secretos de aplicación
   incrustados y, para Twitch, si un cliente público con flujo de dispositivo evita el secreto
   ([ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md)).

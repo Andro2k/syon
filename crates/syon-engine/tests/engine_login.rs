@@ -1,11 +1,12 @@
-//! `Engine::login` reutiliza una sesión guardada y vigente sin pedir el navegador, y rechaza las
-//! plataformas que todavía no sabe iniciar. Vive en su propio binario porque `Engine::start`
+//! `Engine::login` reutiliza una sesión guardada y vigente, de Kick y de Twitch, sin pedir el
+//! navegador. Vive en su propio binario porque `Engine::start`
 //! instala el registro global del proceso. No usa la red.
 
 use std::{env, fs};
 use syon_app::{CredentialStore, Credentials};
 use syon_domain::{Platform, Timestamp};
-use syon_engine::{AppCredentials, AppPaths, Engine, LoginError, LoginOutcome};
+use syon_engine::{AppCredentials, AppPaths, Engine, LoginOutcome};
+use syon_platform_twitch::DEFAULT_SCOPES;
 use syon_storage_credentials::TomlCredentialStore;
 
 /// Milisegundos de un año: la sesión de la prueba no vence mientras corre.
@@ -45,8 +46,21 @@ fn una_sesion_guardada_y_vigente_se_reutiliza_sin_pedir_el_enlace() {
     });
     assert_eq!(outcome, Ok(LoginOutcome::Restored));
 
-    let unsupported = engine.login(Platform::Twitch, &app, |_| panic!("no debía llamarse"));
-    assert_eq!(unsupported, Err(LoginError::Unsupported(Platform::Twitch)));
+    store
+        .save(
+            Platform::Twitch,
+            &Credentials {
+                access_token: "token-de-twitch".to_owned(),
+                refresh_token: Some("renovacion-de-twitch".to_owned()),
+                expires_at: Some(Timestamp::from_unix_ms(now_ms + YEAR_MS)),
+                scopes: DEFAULT_SCOPES.iter().map(|s| (*s).to_owned()).collect(),
+            },
+        )
+        .unwrap();
+    let twitch = engine.login(Platform::Twitch, &app, |_| {
+        panic!("no debía pedir un inicio de sesión nuevo")
+    });
+    assert_eq!(twitch, Ok(LoginOutcome::Restored));
 
     let log = fs::read_to_string(paths.log_file()).unwrap();
     assert!(log.contains("sesión de Kick lista"), "{log}");

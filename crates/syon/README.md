@@ -10,7 +10,7 @@ Su diseño está en el [diseño 003](../../docs/designs/003-arranque-de-platafor
 
 | Comando | Qué hace |
 |---------|----------|
-| `syon` o `syon run` | Conecta las plataformas activadas y muestra los eventos; sale con Ctrl+C |
+| `syon` o `syon run` | Conecta las plataformas activadas (`[kick]` y `[twitch]` en `settings.toml`) y muestra los eventos; sale con Ctrl+C. Twitch deja antes lista la sesión: si no hay una válida imprime el enlace y espera a que autorices |
 | `syon login <kick\|twitch>` | Deja lista la sesión: imprime el enlace de autorización si hace falta y guarda los tokens |
 | `syon --version`, `syon --help` | Versión y uso |
 

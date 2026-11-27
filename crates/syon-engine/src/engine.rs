@@ -1,6 +1,6 @@
 use crate::{
     AppCredentials, AppPaths, EventBus, LoggingConfig, LoggingError, LoginError, LoginOutcome,
-    PlatformStart, PlatformStartError,
+    PlatformCredentials, PlatformStart, PlatformStartError,
     connectors::ConnectorRegistry,
     init_logging,
     platforms::kick_channel,
@@ -9,7 +9,8 @@ use crate::{
 use std::{error::Error, fmt, io, sync::Arc};
 use syon_app::{ConnectionStatus, PlatformConnector, Settings};
 use syon_domain::Platform;
-use syon_platform_kick::{KickAppConfig, KickConnector, OAuthClient, TokenManager};
+use syon_platform_kick as kick;
+use syon_platform_twitch as twitch;
 use syon_storage_credentials::TomlCredentialStore;
 use syon_storage_toml::TomlSettingsStore;
 use tokio::runtime::{Builder, Handle, Runtime};
@@ -80,21 +81,27 @@ impl Engine {
 
     /// Construye, arranca y registra el conector de cada plataforma activada en los ajustes, y
     /// devuelve para cada una si arrancó o por qué no (diseño 003, sección 5). Las plataformas
-    /// desactivadas no aparecen en el resultado.
+    /// desactivadas no aparecen en el resultado. Un fallo de una plataforma se avisa en el registro
+    /// y no impide arrancar las demás.
     ///
-    /// Por ahora solo Kick, que recibe eventos sin credenciales: un fallo de una plataforma se
-    /// avisa en el registro y no impide arrancar las demás.
-    pub fn start_platforms(&mut self) -> Vec<PlatformStart> {
+    /// Kick recibe eventos sin credenciales. Twitch necesita la sesión de la persona antes de
+    /// conectar: reutiliza la guardada o la renueva y, si no hay una válida, inicia sesión en el
+    /// navegador. En ese caso `on_login_url` recibe el enlace y la llamada espera a que la persona
+    /// autorice, así que debe hacerse desde fuera del runtime del engine. Sin las credenciales de la
+    /// aplicación, Twitch no arranca y el resultado lo dice.
+    pub fn start_platforms(
+        &mut self,
+        credentials: &PlatformCredentials,
+        on_login_url: impl Fn(Platform, &str),
+    ) -> Vec<PlatformStart> {
         let mut results = Vec::new();
         if self.settings.kick.enabled {
             let outcome = self.start_kick();
-            if let Err(error) = &outcome {
-                log::warn!("engine: Kick no arrancó: {error}");
-            }
-            results.push(PlatformStart {
-                platform: Platform::Kick,
-                outcome,
-            });
+            results.push(report(Platform::Kick, outcome));
+        }
+        if self.settings.twitch.enabled {
+            let outcome = self.start_twitch(credentials.twitch.as_ref(), &on_login_url);
+            results.push(report(Platform::Twitch, outcome));
         }
         results
     }
@@ -110,31 +117,27 @@ impl Engine {
     /// hace falta un inicio de sesión nuevo, y la llamada espera a que la persona autorice.
     ///
     /// Bloquea sobre el runtime del engine, así que debe llamarse desde fuera de él (por ejemplo,
-    /// desde el hilo principal) y no desde una tarea asíncrona. Por ahora solo admite Kick.
+    /// desde el hilo principal) y no desde una tarea asíncrona.
     pub fn login(
         &self,
         platform: Platform,
         credentials: &AppCredentials,
         on_url: impl FnOnce(&str),
     ) -> Result<LoginOutcome, LoginError> {
-        if platform != Platform::Kick {
-            return Err(LoginError::Unsupported(platform));
-        }
-        let config = KickAppConfig::new(&credentials.client_id, &credentials.client_secret);
-        let store = Arc::new(TomlCredentialStore::new(self.paths.credentials_file()));
-        let started = self.runtime.block_on(async {
-            let oauth = OAuthClient::new(config)?;
-            TokenManager::start(oauth, store, on_url).await
-        });
-        match started {
-            Ok((_session, source)) => {
-                let outcome = LoginOutcome::from(source);
-                log::info!("engine: sesión de Kick lista ({outcome:?})");
+        let result = match platform {
+            Platform::Kick => self.kick_login(credentials, on_url),
+            Platform::Twitch => self
+                .twitch_session(credentials, on_url)
+                .map(|(_tokens, source)| LoginOutcome::from(source)),
+        };
+        match result {
+            Ok(outcome) => {
+                log::info!("engine: sesión de {platform:?} lista ({outcome:?})");
                 Ok(outcome)
             }
-            Err(error) => {
-                log::warn!("engine: no se pudo iniciar sesión en Kick: {error}");
-                Err(LoginError::Failed(error.to_string()))
+            Err(detail) => {
+                log::warn!("engine: no se pudo iniciar sesión en {platform:?}: {detail}");
+                Err(LoginError::Failed(detail))
             }
         }
     }
@@ -168,11 +171,78 @@ impl Engine {
         }
         let channel = kick_channel(&self.settings.kick)?;
         let sink = Arc::new(self.bus.clone());
-        let connector = KickConnector::start(&self.runtime.handle().clone(), channel, sink)
+        let connector = kick::KickConnector::start(&self.runtime.handle().clone(), channel, sink)
             .map_err(|error| PlatformStartError::Connect(error.to_string()))?;
         self.connectors.add(Box::new(connector));
         Ok(())
     }
+
+    /// Deja lista la sesión de Twitch, arranca su conector y lo registra.
+    fn start_twitch(
+        &mut self,
+        app: Option<&AppCredentials>,
+        on_login_url: &impl Fn(Platform, &str),
+    ) -> Result<(), PlatformStartError> {
+        if self.connectors.contains(Platform::Twitch) {
+            return Err(PlatformStartError::AlreadyRunning);
+        }
+        let app = app.ok_or(PlatformStartError::MissingCredentials)?;
+        let (tokens, source) = self
+            .twitch_session(app, |url| on_login_url(Platform::Twitch, url))
+            .map_err(PlatformStartError::Login)?;
+        log::info!(
+            "engine: sesión de Twitch lista ({:?})",
+            LoginOutcome::from(source)
+        );
+        let sink = Arc::new(self.bus.clone());
+        let connector =
+            twitch::TwitchConnector::start(&self.runtime.handle().clone(), tokens, sink)
+                .map_err(|error| PlatformStartError::Connect(error.to_string()))?;
+        self.connectors.add(Box::new(connector));
+        Ok(())
+    }
+
+    /// Sesión de Kick lista; los errores se devuelven como texto sin tokens ni secretos.
+    fn kick_login(
+        &self,
+        app: &AppCredentials,
+        on_url: impl FnOnce(&str),
+    ) -> Result<LoginOutcome, String> {
+        let config = kick::KickAppConfig::new(&app.client_id, &app.client_secret);
+        let store = Arc::new(TomlCredentialStore::new(self.paths.credentials_file()));
+        self.runtime
+            .block_on(async {
+                let oauth = kick::OAuthClient::new(config)?;
+                kick::TokenManager::start(oauth, store, on_url).await
+            })
+            .map(|(_session, source)| LoginOutcome::from(source))
+            .map_err(|error| error.to_string())
+    }
+
+    /// Sesión de Twitch lista, con su gestor de tokens, que el conector comparte.
+    fn twitch_session(
+        &self,
+        app: &AppCredentials,
+        on_url: impl FnOnce(&str),
+    ) -> Result<(Arc<twitch::TokenManager>, twitch::Source), String> {
+        let config = twitch::TwitchAppConfig::new(&app.client_id, &app.client_secret);
+        let store = Arc::new(TomlCredentialStore::new(self.paths.credentials_file()));
+        self.runtime
+            .block_on(async {
+                let oauth = twitch::OAuthClient::new(config)?;
+                twitch::TokenManager::start(oauth, store, on_url).await
+            })
+            .map(|(tokens, source)| (Arc::new(tokens), source))
+            .map_err(|error| error.to_string())
+    }
+}
+
+/// Anota en el registro el fallo de una plataforma y lo empaqueta para quien llama.
+fn report(platform: Platform, outcome: Result<(), PlatformStartError>) -> PlatformStart {
+    if let Err(error) = &outcome {
+        log::warn!("engine: {platform:?} no arrancó: {error}");
+    }
+    PlatformStart { platform, outcome }
 }
 
 impl Drop for Engine {

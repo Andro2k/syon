@@ -6,7 +6,7 @@ use std::{
     process::ExitCode,
 };
 use syon_domain::Platform;
-use syon_engine::{AppPaths, Engine, LoginError, LoginOutcome};
+use syon_engine::{AppPaths, Engine, LoginOutcome, PlatformStartError};
 
 /// Versión que se muestra y que recibe el engine.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -57,10 +57,15 @@ pub fn run() -> ExitCode {
         }
     });
 
-    let started = engine.start_platforms();
+    let started = engine.start_platforms(&credentials::all(), |platform, url| {
+        println!(
+            "{}: abre este enlace en el navegador y autoriza a SYON:\n\n{url}\n\nEsperando la autorización…",
+            platform_label(platform)
+        );
+    });
     if started.is_empty() {
         eprintln!(
-            "No hay plataformas activadas. Edita {} y añade, por ejemplo:\n\n[kick]\nenabled = true\nchannel = \"tu_canal\"",
+            "No hay plataformas activadas. Edita {} y añade, por ejemplo:\n\n[kick]\nenabled = true\nchannel = \"tu_canal\"\n\n[twitch]\nenabled = true",
             engine.paths().settings_file().display()
         );
         return failure();
@@ -72,6 +77,13 @@ pub fn run() -> ExitCode {
             Ok(()) => {
                 running += 1;
                 println!("{name}: escuchando. Ctrl+C para salir.");
+            }
+            Err(PlatformStartError::MissingCredentials) => {
+                // El engine no sabe de variables de entorno: el detalle lo da el binario.
+                match credentials::for_platform(start.platform) {
+                    Err(missing) => eprintln!("{name}: no arrancó: {missing}."),
+                    Ok(_) => eprintln!("{name}: no arrancó: faltan credenciales."),
+                }
             }
             Err(error) => eprintln!("{name}: no arrancó: {error}"),
         }
@@ -113,10 +125,6 @@ pub fn login(platform: Platform) -> ExitCode {
         Ok(LoginOutcome::Restored) => println!("{name}: ya había una sesión vigente."),
         Ok(LoginOutcome::Refreshed) => println!("{name}: sesión renovada."),
         Ok(LoginOutcome::NewLogin) => println!("{name}: sesión iniciada y guardada."),
-        Err(LoginError::Unsupported(_)) => {
-            eprintln!("{name}: el inicio de sesión todavía no está disponible.");
-            return failure();
-        }
         Err(error) => {
             eprintln!("{name}: no se pudo iniciar sesión: {error}");
             return failure();

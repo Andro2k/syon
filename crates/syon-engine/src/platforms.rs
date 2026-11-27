@@ -19,6 +19,10 @@ pub enum PlatformStartError {
     MissingChannel,
     /// Ya hay un conector de esta plataforma registrado.
     AlreadyRunning,
+    /// Esta compilación no tiene las credenciales de la aplicación de esta plataforma.
+    MissingCredentials,
+    /// No se pudo dejar lista la sesión de la persona; el texto explica por qué.
+    Login(String),
     /// El adaptador no pudo preparar la conexión.
     Connect(String),
 }
@@ -28,6 +32,13 @@ impl fmt::Display for PlatformStartError {
         match self {
             Self::MissingChannel => write!(f, "está activada pero falta el canal en los ajustes"),
             Self::AlreadyRunning => write!(f, "ya estaba en marcha"),
+            Self::MissingCredentials => {
+                write!(
+                    f,
+                    "faltan las credenciales de la aplicación para esta plataforma"
+                )
+            }
+            Self::Login(detail) => write!(f, "no se pudo iniciar sesión: {detail}"),
             Self::Connect(detail) => write!(f, "{detail}"),
         }
     }
@@ -86,6 +97,16 @@ mod tests {
             PlatformStartError::MissingChannel
                 .to_string()
                 .contains("canal")
+        );
+        assert!(
+            PlatformStartError::MissingCredentials
+                .to_string()
+                .contains("credenciales")
+        );
+        assert!(
+            PlatformStartError::Login("x".to_owned())
+                .to_string()
+                .contains("iniciar sesión")
         );
     }
 }

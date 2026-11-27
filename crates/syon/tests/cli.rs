@@ -85,3 +85,37 @@ fn run_sin_plataformas_activadas_dice_que_archivo_editar_y_sale_con_1() {
     assert!(err.contains("settings.toml"), "{err}");
     assert!(err.contains(root.to_str().unwrap()), "{err}");
 }
+
+/// Twitch activado y sin credenciales de la aplicación: no arranca, nombra las variables (no sus
+/// valores) y, al no haber nada en marcha, sale con 1. Solo en sistemas con carpetas XDG.
+#[cfg(unix)]
+#[test]
+fn run_con_twitch_sin_credenciales_nombra_las_variables_y_sale_con_1() {
+    // Si esta compilación incrusta credenciales de Twitch, el caso no aplica.
+    if option_env!("SYON_TWITCH_CLIENT_ID").is_some() {
+        return;
+    }
+    let root = std::env::temp_dir().join(format!("syon-bin-twitch-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("config/syon")).unwrap();
+    std::fs::write(
+        root.join("config/syon/settings.toml"),
+        "[twitch]\nenabled = true\n",
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_syon"))
+        .arg("run")
+        .env("HOME", &root)
+        .env("XDG_CONFIG_HOME", root.join("config"))
+        .env("XDG_DATA_HOME", root.join("data"))
+        .env("XDG_CACHE_HOME", root.join("cache"))
+        .env_remove("SYON_TWITCH_CLIENT_ID")
+        .env_remove("SYON_TWITCH_CLIENT_SECRET")
+        .output()
+        .unwrap();
+    let err = text(&output.stderr);
+    let _ = std::fs::remove_dir_all(&root);
+    assert_eq!(output.status.code(), Some(1), "{err}");
+    assert!(err.contains("SYON_TWITCH_CLIENT_ID"), "{err}");
+    assert!(err.contains("SYON_TWITCH_CLIENT_SECRET"), "{err}");
+}

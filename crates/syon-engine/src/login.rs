@@ -1,6 +1,6 @@
 use std::{error::Error, fmt};
-use syon_domain::Platform;
-use syon_platform_kick::Source;
+use syon_platform_kick as kick;
+use syon_platform_twitch as twitch;
 
 /// Cómo se obtuvo la sesión de una plataforma. Es un tipo del engine para que quien lo llama no
 /// vea los tipos de los adaptadores.
@@ -14,12 +14,22 @@ pub enum LoginOutcome {
     NewLogin,
 }
 
-impl From<Source> for LoginOutcome {
-    fn from(source: Source) -> Self {
+impl From<kick::Source> for LoginOutcome {
+    fn from(source: kick::Source) -> Self {
         match source {
-            Source::Restored => Self::Restored,
-            Source::Refreshed => Self::Refreshed,
-            Source::NewLogin => Self::NewLogin,
+            kick::Source::Restored => Self::Restored,
+            kick::Source::Refreshed => Self::Refreshed,
+            kick::Source::NewLogin => Self::NewLogin,
+        }
+    }
+}
+
+impl From<twitch::Source> for LoginOutcome {
+    fn from(source: twitch::Source) -> Self {
+        match source {
+            twitch::Source::Restored => Self::Restored,
+            twitch::Source::Refreshed => Self::Refreshed,
+            twitch::Source::NewLogin => Self::NewLogin,
         }
     }
 }
@@ -28,8 +38,6 @@ impl From<Source> for LoginOutcome {
 /// de la aplicación.
 #[derive(Debug, PartialEq, Eq)]
 pub enum LoginError {
-    /// El engine todavía no sabe iniciar sesión en esta plataforma.
-    Unsupported(Platform),
     /// Falló el inicio de sesión; el texto explica por qué.
     Failed(String),
 }
@@ -37,9 +45,6 @@ pub enum LoginError {
 impl fmt::Display for LoginError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Unsupported(platform) => {
-                write!(f, "todavía no se puede iniciar sesión en {platform:?}")
-            }
             Self::Failed(detail) => write!(f, "{detail}"),
         }
     }
@@ -53,20 +58,38 @@ mod tests {
 
     #[test]
     fn cada_origen_de_la_sesion_tiene_su_resultado() {
-        assert_eq!(LoginOutcome::from(Source::Restored), LoginOutcome::Restored);
         assert_eq!(
-            LoginOutcome::from(Source::Refreshed),
+            LoginOutcome::from(kick::Source::Restored),
+            LoginOutcome::Restored
+        );
+        assert_eq!(
+            LoginOutcome::from(kick::Source::Refreshed),
             LoginOutcome::Refreshed
         );
-        assert_eq!(LoginOutcome::from(Source::NewLogin), LoginOutcome::NewLogin);
+        assert_eq!(
+            LoginOutcome::from(kick::Source::NewLogin),
+            LoginOutcome::NewLogin
+        );
+        assert_eq!(
+            LoginOutcome::from(twitch::Source::Restored),
+            LoginOutcome::Restored
+        );
+        assert_eq!(
+            LoginOutcome::from(twitch::Source::Refreshed),
+            LoginOutcome::Refreshed
+        );
+        assert_eq!(
+            LoginOutcome::from(twitch::Source::NewLogin),
+            LoginOutcome::NewLogin
+        );
     }
 
     #[test]
     fn los_mensajes_de_error_estan_en_espanol() {
         assert!(
-            LoginError::Unsupported(Platform::Twitch)
+            LoginError::Failed("falló".to_owned())
                 .to_string()
-                .contains("todavía")
+                .contains("falló")
         );
     }
 }

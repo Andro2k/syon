@@ -3,7 +3,7 @@
 
 use std::env;
 use syon_domain::Platform;
-use syon_engine::AppCredentials;
+use syon_engine::{AppCredentials, PlatformCredentials};
 
 /// Un valor vacío o en blanco cuenta como ausente.
 fn present(value: Option<&str>) -> Option<&str> {
@@ -113,6 +113,15 @@ pub fn for_platform(platform: Platform) -> Result<AppCredentials, Missing> {
         (id.as_deref(), secret.as_deref()),
         embedded(platform),
     )
+}
+
+/// Las credenciales de todas las plataformas que se pueden resolver; el resto queda en `None`, y el
+/// engine lo informa al intentar arrancarla.
+pub fn all() -> PlatformCredentials {
+    PlatformCredentials {
+        kick: for_platform(Platform::Kick).ok(),
+        twitch: for_platform(Platform::Twitch).ok(),
+    }
 }
 
 #[cfg(test)]

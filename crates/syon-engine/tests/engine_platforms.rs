@@ -5,7 +5,7 @@
 use std::{env, fs};
 use syon_app::ConnectionStatus;
 use syon_domain::Platform;
-use syon_engine::{AppPaths, Engine, PlatformStartError};
+use syon_engine::{AppPaths, Engine, PlatformCredentials, PlatformStartError};
 
 #[test]
 fn kick_activado_se_registra_y_se_detiene_sin_esperar_a_la_red() {
@@ -21,7 +21,9 @@ fn kick_activado_se_registra_y_se_detiene_sin_esperar_a_la_red() {
     };
     assert!(engine.connection_status().is_empty());
 
-    let started = engine.start_platforms();
+    let started = engine.start_platforms(&PlatformCredentials::default(), |_, _| {
+        panic!("Kick no pide un inicio de sesión")
+    });
     assert_eq!(started.len(), 1);
     assert_eq!(started[0].platform, Platform::Kick);
     assert!(started[0].outcome.is_ok(), "{:?}", started[0].outcome);
@@ -30,7 +32,9 @@ fn kick_activado_se_registra_y_se_detiene_sin_esperar_a_la_red() {
     assert_eq!(status[0].0, Platform::Kick);
     assert_ne!(status[0].1, ConnectionStatus::Disconnected);
 
-    let again = engine.start_platforms();
+    let again = engine.start_platforms(&PlatformCredentials::default(), |_, _| {
+        panic!("Kick no pide un inicio de sesión")
+    });
     assert_eq!(again[0].outcome, Err(PlatformStartError::AlreadyRunning));
     assert_eq!(engine.connection_status().len(), 1);
 
