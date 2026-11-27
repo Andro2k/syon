@@ -28,10 +28,10 @@ el trabajo sin depender de una conversación.
   ([ADR-0016](adr/0016-oauth-y-api-de-twitch.md)), traducción de eventos, tabla de las ocho suscripciones
   y conexión a EventSub con `TwitchConnector` ([ADR-0017](adr/0017-conexion-a-eventsub-de-twitch.md)).
   El punto 11 (el binario) y el cableado de los conectores se hicieron con el diseño 003.
-- Propuesto, pendiente de aceptar: el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md), que
+- Aceptado el 2026-11-27: el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md), que
   cubre el punto 11 y el hueco que el plan no recogía (ajustes de Kick, arranque de conectores en el
   engine y el binario `syon`). El autor decidió el 2026-11-26 que las credenciales de la aplicación van
-  incrustadas en el binario ([ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md)).
+  incrustadas en el binario y aceptó el [ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md) el 2026-11-27.
   Los siete parches de código del plan del 003 están aplicados: `[kick]` en los ajustes (04f00bd),
   `AppPaths::credentials_file()` (a5763d7), `AppCredentials`, `start_platforms` y `stop_platforms`
   (b7882aa), `Engine::login` (ee79974), el binario `syon` con `run` y `login` (635d6f9), `[twitch]`
@@ -41,8 +41,6 @@ el trabajo sin depender de una conversación.
 
 ## Pendiente de decidir o verificar
 
-- Aceptar o corregir el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md) (decisiones de su
-  sección 11): sigue en «Propuesta» aunque sus siete parches de código ya están aplicados.
 - Contraste en vivo con la aplicación real, a cargo del autor: `syon login kick`, `syon login twitch`,
   eventos reales de ambas plataformas y la línea de coste de EventSub en `syon.log`
   ([suscripciones](architecture/suscripciones.md)). F2 no se da por cerrada hasta verlo.

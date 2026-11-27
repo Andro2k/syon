@@ -11,7 +11,7 @@ plan del diseño 002. Con este cierre SYON se puede ejecutar desde la consola: c
 activadas en `settings.toml` e imprime los eventos. No hay interfaz (F9), ni envío de mensajes (F3), ni
 instalador (F10).
 
-El diseño 003 sigue en «Propuesta»: sus siete parches de código se aplicaron antes de aceptarlo.
+El diseño 003 y el ADR-0018 se aceptaron el 2026-11-27, después de aplicados los siete parches de código.
 
 ## Cambios por capa
 

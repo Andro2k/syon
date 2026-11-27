@@ -1,6 +1,6 @@
 # ADR-0018: Credenciales de la aplicación incrustadas en el binario en tiempo de compilación
 
-- Estado: Propuesta (la decisión de fondo la tomó el autor el 2026-11-26; falta revisar los detalles)
+- Estado: Aceptada (2026-11-27; la decisión de fondo la tomó el autor el 2026-11-26)
 - Fecha: 2026-11-26
 
 ## Contexto

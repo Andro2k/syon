@@ -1,6 +1,6 @@
 # Diseño 003: arranque de plataformas y binario (cierre de F2)
 
-- Estado: Propuesta (2026-11-26)
+- Estado: Aceptado (2026-11-27); propuesto el 2026-11-26
 - Fase: F2
 - Fecha: 2026-11-26
 
@@ -189,7 +189,7 @@ Ningún crate nuevo. El binario añade a `tokio` la función `signal`, que el wo
 
 ## 11. Decisiones
 
-Se proponen como están y se aceptan o se corrigen antes de implementar:
+Se propusieron así y el autor las aceptó el 2026-11-27, con los siete parches de código ya aplicados:
 
 1. **Credenciales de la aplicación incrustadas** e inyectadas al compilar: decidido por el autor
    (2026-11-26), con el detalle del ADR-0018.
