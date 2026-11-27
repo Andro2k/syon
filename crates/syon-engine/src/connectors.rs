@@ -14,6 +14,13 @@ impl ConnectorRegistry {
         self.connectors.push(connector);
     }
 
+    /// Si ya hay un conector de `platform` registrado.
+    pub(crate) fn contains(&self, platform: Platform) -> bool {
+        self.connectors
+            .iter()
+            .any(|connector| connector.platform() == platform)
+    }
+
     /// Estado de cada conector, en el orden en que se registraron.
     pub(crate) fn statuses(&self) -> Vec<(Platform, ConnectionStatus)> {
         self.connectors

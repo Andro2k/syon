@@ -1,12 +1,14 @@
 use crate::{
-    AppPaths, EventBus, LoggingConfig, LoggingError,
+    AppPaths, EventBus, LoggingConfig, LoggingError, PlatformStart, PlatformStartError,
     connectors::ConnectorRegistry,
     init_logging,
+    platforms::kick_channel,
     settings_loading::{read_settings, recover},
 };
-use std::{error::Error, fmt, io};
+use std::{error::Error, fmt, io, sync::Arc};
 use syon_app::{ConnectionStatus, PlatformConnector, Settings};
 use syon_domain::Platform;
+use syon_platform_kick::KickConnector;
 use syon_storage_toml::TomlSettingsStore;
 use tokio::runtime::{Builder, Handle, Runtime};
 
@@ -74,6 +76,32 @@ impl Engine {
         self.connectors.add(connector);
     }
 
+    /// Construye, arranca y registra el conector de cada plataforma activada en los ajustes, y
+    /// devuelve para cada una si arrancó o por qué no (diseño 003, sección 5). Las plataformas
+    /// desactivadas no aparecen en el resultado.
+    ///
+    /// Por ahora solo Kick, que recibe eventos sin credenciales: un fallo de una plataforma se
+    /// avisa en el registro y no impide arrancar las demás.
+    pub fn start_platforms(&mut self) -> Vec<PlatformStart> {
+        let mut results = Vec::new();
+        if self.settings.kick.enabled {
+            let outcome = self.start_kick();
+            if let Err(error) = &outcome {
+                log::warn!("engine: Kick no arrancó: {error}");
+            }
+            results.push(PlatformStart {
+                platform: Platform::Kick,
+                outcome,
+            });
+        }
+        results
+    }
+
+    /// Pide detenerse a todos los conectores registrados. Puede llamarse más de una vez.
+    pub fn stop_platforms(&self) {
+        self.connectors.stop_all();
+    }
+
     /// Estado de la conexión de cada plataforma registrada.
     pub fn connection_status(&self) -> Vec<(Platform, ConnectionStatus)> {
         self.connectors.statuses()
@@ -92,6 +120,21 @@ impl Engine {
     /// Bus de eventos; es barato de clonar y las copias comparten consumidores.
     pub fn bus(&self) -> &EventBus {
         &self.bus
+    }
+}
+
+impl Engine {
+    /// Arranca el conector de Kick con el canal de los ajustes y lo registra.
+    fn start_kick(&mut self) -> Result<(), PlatformStartError> {
+        if self.connectors.contains(Platform::Kick) {
+            return Err(PlatformStartError::AlreadyRunning);
+        }
+        let channel = kick_channel(&self.settings.kick)?;
+        let sink = Arc::new(self.bus.clone());
+        let connector = KickConnector::start(&self.runtime.handle().clone(), channel, sink)
+            .map_err(|error| PlatformStartError::Connect(error.to_string()))?;
+        self.connectors.add(Box::new(connector));
+        Ok(())
     }
 }
 
