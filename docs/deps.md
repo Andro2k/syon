@@ -12,7 +12,7 @@ dependencia.
 
 | Dependencia | Para qué | Alternativa | Riesgo |
 |-------------|----------|-------------|--------|
-| tokio 1 (`sync`; `syon-engine` añade `rt-multi-thread` y `time`) | Canales acotados del bus ([ADR-0007](adr/0007-bus-de-eventos.md)) y runtime asíncrono del engine ([ADR-0011](adr/0011-runtime-asincrono-del-engine.md)) | flume, async-channel; smol | Bajo; las funciones nuevas no suman crates al `Cargo.lock` |
+| tokio 1 (`sync`; `syon-engine` añade `rt-multi-thread` y `time`; `syon`, el binario, añade `rt` y `signal`) | Canales acotados del bus ([ADR-0007](adr/0007-bus-de-eventos.md)) y runtime asíncrono del engine ([ADR-0011](adr/0011-runtime-asincrono-del-engine.md)) | flume, async-channel; smol | Bajo; `signal` suma `signal-hook-registry` y `errno` al `Cargo.lock` (Ctrl+C del binario) |
 | log 0.4 | Fachada de registro ([ADR-0006](adr/0006-registro-de-diagnostico.md)) | tracing con su puente a `log` | Pre-1.0, pero estable de hecho |
 | env_logger 0.11 (funciones por defecto) | Filtros por módulo, `SYON_LOG` y hora de las líneas, en `syon-engine` ([ADR-0006](adr/0006-registro-de-diagnostico.md)) | tracing con `tracing-subscriber` | Pre-1.0; con las funciones por defecto trae `jiff` 1.x, `regex`, `anstream` y `env_filter` (MIT o Apache-2.0, aceptadas por `deny.toml`) |
 | etcetera 0.11 | Carpetas de configuración, datos y caché del sistema, solo en `syon-engine` ([ADR-0009](adr/0009-rutas-de-datos.md)) | dirs (arrastra `option-ext`, MPL-2.0) | Pre-1.0; en Linux solo suma `cfg-if`, en Windows `windows-sys` y `windows-link` (MIT o Apache-2.0) |

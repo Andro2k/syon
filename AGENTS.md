@@ -36,6 +36,7 @@ crates/
   syon-storage-credentials/  adaptador de tokens OAuth sobre TOML (credentials.toml, permisos 0600)
   syon-platform-kick/   adaptador de Kick: feed en tiempo real con reconexión, traducción de eventos y OAuth
   syon-engine/          ensambla todo: bus, rutas, logging, runtime, conectores; corre sin interfaz
+  syon/                 binario de consola: run (conecta y muestra eventos) y login; credenciales de la aplicación
 xtask/                  tareas de mantenimiento (cargo xtask)
 ```
 

@@ -1,0 +1,15 @@
+[package]
+name = "syon"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Binario de SYON: arranca el engine, conecta las plataformas y muestra los eventos"
+
+[dependencies]
+syon-domain.workspace = true
+syon-engine.workspace = true
+tokio = { workspace = true, features = ["rt", "signal"] }
+
+[lints]
+workspace = true

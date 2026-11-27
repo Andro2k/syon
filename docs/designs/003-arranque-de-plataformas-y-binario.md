@@ -118,7 +118,7 @@ preferencias, y así quedan junto a `syon.log` y fuera de la carpeta de configur
 
 ## 6. El binario `syon`
 
-Un crate `crates/syon` que solo depende de `syon-engine`. Tiene el papel `Binary` de `arch-check`.
+Un crate `crates/syon` que depende de `syon-engine` y de `syon-domain` (para dar formato a los eventos). Tiene el papel `Binary` de `arch-check`.
 
 | Comando | Qué hace |
 |---------|----------|
