@@ -119,6 +119,14 @@ pub(crate) fn parse(text: &str) -> Result<Settings, String> {
     Ok(settings)
 }
 
+/// Lee solo el `schema_version` de un texto TOML, sin validar el resto. Devuelve `None` si el
+/// texto no es TOML o la clave falta o no es un entero, para que quien guarda no se bloquee por
+/// un archivo que `load` ya rechaza por su cuenta.
+pub(crate) fn schema_version(text: &str) -> Option<u32> {
+    let table: Table = text.parse().ok()?;
+    read::<u32>(&table, &["schema_version"]).ok().flatten()
+}
+
 /// Busca `path` (por ejemplo `["logging", "level"]`) y lo convierte a `T`. Devuelve `None`
 /// si la clave no existe; si existe con otro tipo, el error nombra la clave completa.
 fn read<T: DeserializeOwned>(table: &Table, path: &[&str]) -> Result<Option<T>, String> {

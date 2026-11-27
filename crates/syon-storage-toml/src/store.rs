@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
     sync::{Mutex, PoisonError},
 };
-use syon_app::{Settings, SettingsError, SettingsStore};
+use syon_app::{SCHEMA_VERSION, Settings, SettingsError, SettingsStore};
 
 /// Serializa los guardados de todo el proceso. Dos `save` a la vez usarían el mismo temporal
 /// (`settings.toml.<pid>.tmp`) y uno encontraría que el otro ya lo renombró. Además, dos
@@ -54,6 +54,23 @@ impl TomlSettingsStore {
         }
     }
 
+    /// Rechaza el guardado si el archivo en disco, o los ajustes recibidos, son de un esquema más
+    /// nuevo que `SCHEMA_VERSION` (ADR-0019). Reescribirlo borraría las claves que esta versión no
+    /// conoce. Un archivo ausente o ilegible no bloquea: `load` ya lo trata aparte.
+    fn refuse_newer_schema(&self, settings: &Settings) -> Result<(), SettingsError> {
+        let on_disk = fs::read_to_string(&self.path)
+            .ok()
+            .and_then(|text| format::schema_version(&text));
+        let found = on_disk.unwrap_or(0).max(settings.schema_version);
+        if found > SCHEMA_VERSION {
+            return Err(self.invalid(format!(
+                "schema_version {found} es más nuevo que el {SCHEMA_VERSION} que conoce esta \
+                 versión de SYON; no se guarda para no perder las claves que no conoce"
+            )));
+        }
+        Ok(())
+    }
+
     /// Escribe `content` en el temporal y lo sincroniza a disco antes del `rename`.
     fn write_temp(temp: &Path, content: &str) -> io::Result<()> {
         let mut file = File::create(temp)?;
@@ -79,6 +96,7 @@ impl SettingsStore for TomlSettingsStore {
     fn save(&self, settings: &Settings) -> Result<(), SettingsError> {
         let content = format::render(settings).map_err(|error| self.invalid(error))?;
         let _guard = SAVE_LOCK.lock().unwrap_or_else(PoisonError::into_inner);
+        self.refuse_newer_schema(settings)?;
         if let Some(parent) = self.path.parent().filter(|p| !p.as_os_str().is_empty()) {
             fs::create_dir_all(parent).map_err(|error| self.io_error(error))?;
         }
@@ -97,7 +115,7 @@ impl SettingsStore for TomlSettingsStore {
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicU32, Ordering};
-    use syon_app::{LogLevel, SCHEMA_VERSION};
+    use syon_app::LogLevel;
 
     /// Carpeta temporal única que se borra al soltarla (sin dependencias de prueba).
     struct TempDir(PathBuf);
@@ -428,5 +446,46 @@ mod tests {
         let store: Box<dyn SettingsStore> = Box::new(TomlSettingsStore::new(dir.file()));
         store.save(&debug_settings()).unwrap();
         assert_eq!(store.load().unwrap(), debug_settings());
+    }
+
+    #[test]
+    fn no_guarda_si_el_archivo_es_de_un_esquema_mas_nuevo() {
+        let dir = TempDir::new();
+        let original = format!(
+            "schema_version = {}\nfutura = true\n[logging]\nlevel = \"warn\"\n",
+            SCHEMA_VERSION + 1
+        );
+        fs::write(dir.file(), &original).unwrap();
+        let store = TomlSettingsStore::new(dir.file());
+        let error = store.save(&Settings::default()).unwrap_err();
+        assert!(matches!(error, SettingsError::Invalid { .. }), "{error}");
+        assert!(error.to_string().contains("schema_version"), "{error}");
+        assert_eq!(fs::read_to_string(dir.file()).unwrap(), original);
+    }
+
+    #[test]
+    fn no_guarda_unos_ajustes_de_un_esquema_mas_nuevo_ni_crea_el_archivo() {
+        let dir = TempDir::new();
+        let store = TomlSettingsStore::new(dir.file());
+        let settings = Settings {
+            schema_version: SCHEMA_VERSION + 1,
+            ..Settings::default()
+        };
+        assert!(matches!(
+            store.save(&settings),
+            Err(SettingsError::Invalid { .. })
+        ));
+        assert!(!dir.file().exists());
+    }
+
+    #[test]
+    fn un_archivo_del_esquema_actual_o_anterior_si_se_guarda() {
+        let dir = TempDir::new();
+        fs::write(dir.file(), format!("schema_version = {SCHEMA_VERSION}\n")).unwrap();
+        let store = TomlSettingsStore::new(dir.file());
+        store.save(&debug_settings()).unwrap();
+        assert_eq!(store.load().unwrap(), debug_settings());
+        fs::write(dir.file(), "schema_version = 0\n").unwrap();
+        store.save(&debug_settings()).unwrap();
     }
 }

@@ -59,9 +59,10 @@ el trabajo sin depender de una conversación.
 - `chrono` sigue en el prototipo con su aviso ignorado en `deny.toml`; se va con el prototipo.
 - Los permisos del archivo de credenciales no se comprueban en Windows (solo en Unix): confirmarlo al
   iniciar sesión por primera vez.
-- Decisión del autor: rechazar o avisar al guardar si el `schema_version` del archivo es mayor que
-  `SCHEMA_VERSION`. Hoy un `save` de una versión vieja reescribe el archivo sin las claves que no
-  conoce y deja su versión (ADR 0008, consecuencias).
+- Aceptar o corregir el [ADR-0019](adr/0019-guardado-con-esquema-mas-nuevo.md): `save` rechaza guardar si el
+  `schema_version` del archivo o de los ajustes es mayor que `SCHEMA_VERSION` (la decisión estaba abierta; se
+  eligió no perder claves). Ningún código de producción llama aún a `save`; la interfaz de F9 deberá mostrar
+  el error.
 - El feed de Kick solo se probó con servidores HTTP y WebSocket locales falsos: falta contrastarlo en vivo
   (nombres de campo, endpoints de `web.kick.com` y `kick.com/api/v2`, el 403 de la consulta del canal
   y la forma real de las publicaciones).

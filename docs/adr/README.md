@@ -26,6 +26,7 @@ Estados: `Propuesta` · `Aceptada` · `Reemplazada por ADR-NNNN` · `Descartada`
 | [0016](0016-oauth-y-api-de-twitch.md) | OAuth de Twitch con código de autorización, callback local y cliente mínimo de Helix | Aceptada |
 | [0017](0017-conexion-a-eventsub-de-twitch.md) | Conexión a EventSub de Twitch por WebSocket con cambio de conexión sin pérdidas | Aceptada |
 | [0018](0018-credenciales-de-aplicacion-incrustadas.md) | Credenciales de la aplicación incrustadas en el binario en tiempo de compilación | Propuesta |
+| [0019](0019-guardado-con-esquema-mas-nuevo.md) | Un `save` no reescribe ajustes de un esquema más nuevo | Propuesta |
 
 Para crear uno nuevo: copiar [0000-plantilla.md](0000-plantilla.md), usar el
 siguiente número libre y añadir la fila a esta tabla en el mismo commit.

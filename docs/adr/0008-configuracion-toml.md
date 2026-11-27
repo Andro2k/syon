@@ -65,6 +65,7 @@ corromper el archivo (diseño 001, secciones 5 y 7).
   clave, el precio de que `syon-app` no conozca ningún formato.
 - Una versión anterior de SYON que guarde un archivo de una versión más nueva perderá las claves que no
   conoce. Se acepta mientras solo haya una versión de esquema; la migración, si llega, tendrá su ADR.
+  El [ADR-0019](0019-guardado-con-esquema-mas-nuevo.md) cambia esto: `save` rechaza ese guardado.
 - `save` reescribe el archivo entero y no conserva comentarios ni el orden que el usuario haya puesto.
 - El `rename` atómico sobre un archivo existente depende de la plataforma: la biblioteca estándar lo
   reemplaza en Linux y en Windows. Se prueba en ambos con la CI.
