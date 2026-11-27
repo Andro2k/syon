@@ -18,8 +18,8 @@ se marca **sin contrastar** en la tabla y en las consecuencias.
 
 1. **`TwitchConnector` implementa `PlatformConnector`.** `TwitchConnector::start(handle, tokens, sumidero)`
    lanza una tarea en el runtime del engine y vuelve enseguida. Recibe un `TokenManager` con la sesión ya
-   iniciada: quién inicia sesión y de dónde sale el `client_secret` no es cosa del conector (pendiente 6
-   del diseño). Publica `Event { platform: Twitch, .. }` en el `EventSink`.
+   iniciada: quién inicia sesión y de dónde sale el `client_secret` no es cosa del conector (lo fija el
+   [ADR-0018](0018-credenciales-de-aplicacion-incrustadas.md)). Publica `Event { platform: Twitch, .. }` en el `EventSink`.
 2. **Una sesión** (`session`): valida el token (su `user_id` es el canal), abre
    `wss://eventsub.wss.twitch.tv/ws`, espera el mensaje de bienvenida, crea las suscripciones con su
    `session_id` y lee mensajes hasta que la conexión se cierra o falla. Si Twitch responde 401 a una

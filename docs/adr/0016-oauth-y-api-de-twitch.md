@@ -47,7 +47,7 @@ contrastar** en las consecuencias.
 5. **Separación de responsabilidades.** `OAuthClient` solo habla con Twitch y no guarda nada;
    `TokenManager` decide reutilizar, renovar o iniciar sesión, y persiste solo a través del puerto
    `CredentialStore`. `TwitchAppConfig` llega por constructor: el crate no lee entorno, `.env` ni
-   ajustes (de dónde sale el `client_secret` es el pendiente 6 del diseño y lo decide el autor), y su
+   ajustes (de dónde sale el `client_secret` lo fija el [ADR-0018](0018-credenciales-de-aplicacion-incrustadas.md)), y su
    `Debug` no imprime el secreto.
 6. **Cliente mínimo de Helix** (`TwitchApi`), con lo imprescindible y sin guardar tokens (cada llamada
    recibe el suyo, con `Authorization` y `Client-Id`):

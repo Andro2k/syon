@@ -74,9 +74,10 @@ mantiene la conexión por WebSocket. Sigue la estructura de
 ## Qué no hace
 
 - No lee `.env`, el entorno ni los ajustes: `TwitchAppConfig` llega por constructor. De dónde sale el
-  `client_secret` lo decide el autor (pendiente 6 del diseño).
+  `client_secret` lo decide el autor y va incrustado en el binario
+  ([ADR-0018](../../docs/adr/0018-credenciales-de-aplicacion-incrustadas.md)).
 - No abre el navegador ni crea el runtime del engine: recibe el `Handle` y el `EventSink`. No está
-  conectado al engine; eso y el origen del `client_secret` los decide quien integra.
+  conectado al engine: lo cablea el [diseño 003](../../docs/designs/003-arranque-de-plataformas-y-binario.md).
 - No envía mensajes ni modera (F3). No consulta otros canales: solo resuelve el del usuario que inició
   sesión.
 - Los endpoints, el formato de las respuestas, los mensajes de EventSub y los permisos salen de la
