@@ -10,12 +10,19 @@ struct SettingsFile {
     schema_version: u32,
     logging: LoggingSection,
     kick: KickSection,
+    twitch: TwitchSection,
 }
 
 /// Sección `[logging]`.
 #[derive(Serialize)]
 struct LoggingSection {
     level: LevelName,
+}
+
+/// Sección `[twitch]`: solo indica si la plataforma está activada.
+#[derive(Serialize)]
+struct TwitchSection {
+    enabled: bool,
 }
 
 /// Sección `[kick]`. Los ids opcionales se omiten cuando no están definidos.
@@ -77,6 +84,9 @@ pub(crate) fn render(settings: &Settings) -> Result<String, toml::ser::Error> {
             channel_id: settings.kick.channel_id,
             chatroom_id: settings.kick.chatroom_id,
         },
+        twitch: TwitchSection {
+            enabled: settings.twitch.enabled,
+        },
     })
 }
 
@@ -103,6 +113,9 @@ pub(crate) fn parse(text: &str) -> Result<Settings, String> {
     }
     settings.kick.channel_id = read::<u64>(&table, &["kick", "channel_id"])?;
     settings.kick.chatroom_id = read::<u64>(&table, &["kick", "chatroom_id"])?;
+    if let Some(enabled) = read::<bool>(&table, &["twitch", "enabled"])? {
+        settings.twitch.enabled = enabled;
+    }
     Ok(settings)
 }
 

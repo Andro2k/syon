@@ -11,6 +11,8 @@ pub struct Settings {
     pub logging: LoggingSettings,
     /// Ajustes de la conexión a Kick.
     pub kick: KickSettings,
+    /// Ajustes de la conexión a Twitch.
+    pub twitch: TwitchSettings,
 }
 
 impl Default for Settings {
@@ -19,6 +21,7 @@ impl Default for Settings {
             schema_version: SCHEMA_VERSION,
             logging: LoggingSettings::default(),
             kick: KickSettings::default(),
+            twitch: TwitchSettings::default(),
         }
     }
 }
@@ -44,6 +47,16 @@ pub struct KickSettings {
     pub channel_id: Option<u64>,
     /// Id numérico de la sala de chat. Solo se usa si `channel_id` también está definido.
     pub chatroom_id: Option<u64>,
+}
+
+/// Ajustes de la conexión a Twitch. Por defecto la plataforma está desactivada.
+///
+/// No hay canal: SYON escucha el del usuario que inicia sesión. Tampoco van aquí el `client_id` ni
+/// el `client_secret` de la aplicación (ver ADR-0018).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct TwitchSettings {
+    /// Si el engine debe conectar con Twitch al arrancar las plataformas.
+    pub enabled: bool,
 }
 
 /// Nivel de detalle del registro. `Info` es el valor por defecto porque el texto
@@ -72,6 +85,11 @@ mod tests {
         let settings = Settings::default();
         assert_eq!(settings.schema_version, SCHEMA_VERSION);
         assert_eq!(settings.logging.level, LogLevel::Info);
+    }
+
+    #[test]
+    fn twitch_esta_desactivado_por_defecto() {
+        assert!(!Settings::default().twitch.enabled);
     }
 
     #[test]

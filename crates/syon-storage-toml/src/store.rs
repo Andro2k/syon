@@ -212,6 +212,37 @@ mod tests {
     }
 
     #[test]
+    fn guardar_y_cargar_devuelve_la_seccion_twitch() {
+        let dir = TempDir::new();
+        let store = TomlSettingsStore::new(dir.file());
+        let mut settings = Settings::default();
+        settings.twitch.enabled = true;
+        store.save(&settings).unwrap();
+        let text = fs::read_to_string(dir.file()).unwrap();
+        assert!(text.contains("[twitch]"), "{text}");
+        assert_eq!(store.load().unwrap(), settings);
+    }
+
+    #[test]
+    fn un_archivo_sin_twitch_o_con_claves_desconocidas_sigue_cargando() {
+        let dir = TempDir::new();
+        fs::write(dir.file(), "[kick]\nenabled = true\n").unwrap();
+        let loaded = TomlSettingsStore::new(dir.file()).load().unwrap();
+        assert!(!loaded.twitch.enabled);
+        fs::write(dir.file(), "[twitch]\nenabled = true\ncanal = \"x\"\n").unwrap();
+        let loaded = TomlSettingsStore::new(dir.file()).load().unwrap();
+        assert!(loaded.twitch.enabled);
+    }
+
+    #[test]
+    fn un_tipo_incorrecto_en_twitch_nombra_la_clave() {
+        let dir = TempDir::new();
+        fs::write(dir.file(), "[twitch]\nenabled = 3\n").unwrap();
+        let error = TomlSettingsStore::new(dir.file()).load().unwrap_err();
+        assert!(error.to_string().contains("twitch.enabled"), "{error}");
+    }
+
+    #[test]
     fn los_ids_de_kick_sin_definir_no_se_escriben() {
         let dir = TempDir::new();
         let store = TomlSettingsStore::new(dir.file());
