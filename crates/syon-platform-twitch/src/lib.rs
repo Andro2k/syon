@@ -13,6 +13,7 @@ mod error;
 mod events;
 mod oauth_client;
 mod session;
+mod subscriptions;
 #[cfg(test)]
 mod test_support;
 mod token;
@@ -26,3 +27,4 @@ pub use error::{ApiError, OAuthError};
 pub use events::event_from_notification;
 pub use oauth_client::OAuthClient;
 pub use session::{Source, TokenManager};
+pub use subscriptions::{SUBSCRIPTIONS, SubscriptionSpec, subscription_requests};

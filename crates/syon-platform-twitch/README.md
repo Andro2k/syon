@@ -37,6 +37,12 @@ conexión por WebSocket llega en el parche siguiente.
 - Los errores (`OAuthError`) nunca incluyen tokens, el `client_secret` ni el contenido de una respuesta
   ilegible; `TwitchAppConfig` implementa `Debug` sin el secreto.
 
+### Suscripciones
+
+- `SUBSCRIPTIONS` lista las ocho suscripciones con su versión y el permiso que exige cada una, y
+  `subscription_requests(user_id)` arma sus peticiones para un canal propio: `broadcaster_user_id` en
+  todas, más `user_id` en las de chat y `moderator_user_id` en `channel.follow` (v2).
+
 ### Cliente de la API ([ADR-0016](../../docs/adr/0016-oauth-y-api-de-twitch.md))
 
 - `TwitchApi` hace solo tres cosas, y no guarda tokens (cada llamada recibe el suyo, con las cabeceras
@@ -69,6 +75,7 @@ conexión por WebSocket llega en el parche siguiente.
 | `OAuthClient::new(config)` | Cliente OAuth: `login(on_url)`, `refresh(&credenciales)` y `client_id()` |
 | `TokenManager::start(oauth, almacén, on_url)` | Deja lista la sesión; devuelve su `Source` |
 | `TokenManager::access_token()` / `force_refresh()` / `client_id()` | Token vigente, renovado si hace falta |
+| `SUBSCRIPTIONS` / `subscription_requests(user_id)` | Las ocho suscripciones y sus peticiones |
 | `TwitchApi::new(client_id)` | Cliente de Helix: `validate`, `create_subscription` y `list_subscriptions` |
 | `TokenInfo`, `SubscriptionRequest`, `CreatedSubscription`, `SubscriptionList` | Datos que entran y salen de la API |
 | `OAuthError` / `ApiError` | Fallos tipados del inicio de sesión y de la API |
