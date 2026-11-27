@@ -13,6 +13,7 @@ use std::{
 const APP_NAME: &str = "SYON";
 const SETTINGS_FILE: &str = "settings.toml";
 const LOG_FILE: &str = "syon.log";
+const CREDENTIALS_FILE: &str = "credentials.toml";
 
 /// Carpetas donde SYON guarda sus archivos: configuración, datos y caché.
 ///
@@ -86,6 +87,12 @@ impl AppPaths {
     pub fn log_file(&self) -> PathBuf {
         self.data_dir.join(LOG_FILE)
     }
+
+    /// Archivo de tokens de las plataformas (`credentials.toml`, en la carpeta de datos). Los
+    /// tokens son estado y no preferencias, así que viven junto al log y no con los ajustes.
+    pub fn credentials_file(&self) -> PathBuf {
+        self.data_dir.join(CREDENTIALS_FILE)
+    }
 }
 
 /// No se pudieron determinar las carpetas del sistema.
@@ -129,6 +136,10 @@ mod tests {
             Path::new("/raiz/config/settings.toml")
         );
         assert_eq!(paths.log_file(), Path::new("/raiz/data/syon.log"));
+        assert_eq!(
+            paths.credentials_file(),
+            Path::new("/raiz/data/credentials.toml")
+        );
     }
 
     #[test]
@@ -203,5 +214,10 @@ mod tests {
         assert_ne!(paths.data_dir(), paths.cache_dir());
         assert_eq!(paths.settings_file().file_name().unwrap(), "settings.toml");
         assert_eq!(paths.log_file().file_name().unwrap(), "syon.log");
+        assert_eq!(
+            paths.credentials_file().file_name().unwrap(),
+            "credentials.toml"
+        );
+        assert_eq!(paths.credentials_file().parent(), Some(paths.data_dir()));
     }
 }
