@@ -69,9 +69,6 @@ el trabajo sin depender de una conversación.
 - El OAuth de Kick solo se probó con servidores locales falsos: falta un inicio de sesión real contra
   `id.kick.com` (endpoints, permisos y puerto de callback `8080`, que debe estar registrado en la aplicación
   de Kick).
-- Ningún binario llama todavía a `Engine::start`: las pruebas de `crates/syon-engine/tests/` son su
-  único uso. Al crear el crate `syon`, pasarle `env!("CARGO_PKG_VERSION")` y decidir cómo avisa un
-  `StartError`.
 - Si el usuario no mira el log, no se entera de que se ignoró un `settings.toml` inválido; una
   notificación en la interfaz queda para F9 (ADR 0010).
 - Decisión del autor: «últimas 5 ejecuciones» se implementó de forma literal (se podan las marcas más
