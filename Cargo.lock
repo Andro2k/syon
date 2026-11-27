@@ -1213,6 +1213,7 @@ name = "syon-platform-twitch"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
+ "futures-util",
  "log",
  "rand 0.9.5",
  "reqwest",
@@ -1221,6 +1222,7 @@ dependencies = [
  "syon-app",
  "syon-domain",
  "tokio",
+ "tokio-tungstenite",
 ]
 
 [[package]]

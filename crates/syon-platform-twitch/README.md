@@ -1,9 +1,9 @@
 # syon-platform-twitch
 
 Adaptador de Twitch (F2, [diseño 002](../../docs/designs/002-plataformas-kick-twitch.md)). Gestiona el
-inicio de sesión OAuth, ofrece un cliente mínimo de la API de Helix y traduce los eventos de EventSub.
-Sigue la estructura de [`syon-platform-kick`](../syon-platform-kick/README.md), del que no depende. La
-conexión por WebSocket llega en el parche siguiente.
+inicio de sesión OAuth, ofrece un cliente mínimo de la API de Helix, traduce los eventos de EventSub y
+mantiene la conexión por WebSocket. Sigue la estructura de
+[`syon-platform-kick`](../syon-platform-kick/README.md), del que no depende.
 
 ## Qué hace
 
@@ -37,6 +37,22 @@ conexión por WebSocket llega en el parche siguiente.
 - Los errores (`OAuthError`) nunca incluyen tokens, el `client_secret` ni el contenido de una respuesta
   ilegible; `TwitchAppConfig` implementa `Debug` sin el secreto.
 
+### Conexión a EventSub ([ADR-0017](../../docs/adr/0017-conexion-a-eventsub-de-twitch.md))
+
+- `TwitchConnector::start(handle, tokens, sumidero)` abre `wss://eventsub.wss.twitch.tv/ws` en el
+  runtime del engine, crea las ocho suscripciones con el `session_id` de la bienvenida y publica
+  `Event { platform: Twitch, .. }` en el `EventSink`. Implementa `PlatformConnector`: `status()` y
+  `stop()`; soltarlo también lo detiene. Recibe un `TokenManager` con la sesión ya iniciada.
+- Atiende los keepalive (plazo anunciado por Twitch más 5 s de margen) y, ante `session_reconnect`,
+  abre la conexión nueva antes de soltar la vieja, vaciando lo que esta traiga, sin volver a suscribir.
+- Reconecta sola con espera creciente (1 s a 30 s, `Backoff` de `syon-app`) ante un cierre, un error, el
+  silencio o una suscripción cancelada. El estado pasa por `Connecting`, `Connected`,
+  `Reconnecting { attempt }` y `Disconnected`.
+- Lee `cost` de cada suscripción y registra al arrancar el total y el límite de la aplicación; lo que
+  Twitch no informa se muestra como `?`. Una suscripción que falla se registra y las demás siguen.
+- Si Twitch responde 401, renueva el token y reintenta una vez. Descarta las notificaciones repetidas
+  por su `message_id`.
+
 ### Suscripciones
 
 - `SUBSCRIPTIONS` lista las ocho suscripciones con su versión y el permiso que exige cada una, y
@@ -59,12 +75,14 @@ conexión por WebSocket llega en el parche siguiente.
 
 - No lee `.env`, el entorno ni los ajustes: `TwitchAppConfig` llega por constructor. De dónde sale el
   `client_secret` lo decide el autor (pendiente 6 del diseño).
-- No abre el navegador ni crea el runtime del engine.
+- No abre el navegador ni crea el runtime del engine: recibe el `Handle` y el `EventSink`. No está
+  conectado al engine; eso y el origen del `client_secret` los decide quien integra.
 - No envía mensajes ni modera (F3). No consulta otros canales: solo resuelve el del usuario que inició
   sesión.
-- Los endpoints de `id.twitch.tv`, el formato de la respuesta y los permisos salen de la documentación de
-  Twitch y no se han contrastado en vivo; el OAuth y la API se prueban con servidores locales falsos. El permiso
-  `moderator:read:followers` está sin contrastar (ver el ADR).
+- Los endpoints, el formato de las respuestas, los mensajes de EventSub y los permisos salen de la
+  documentación de Twitch y no se han contrastado en vivo; el OAuth, la API y EventSub se prueban con servidores HTTP y
+  WebSocket locales falsos. El `cost` real, los campos de `stream.online` y `stream.offline` y el permiso
+  `moderator:read:followers` están sin contrastar (ver los ADR).
 
 ## API pública
 
@@ -75,10 +93,12 @@ conexión por WebSocket llega en el parche siguiente.
 | `OAuthClient::new(config)` | Cliente OAuth: `login(on_url)`, `refresh(&credenciales)` y `client_id()` |
 | `TokenManager::start(oauth, almacén, on_url)` | Deja lista la sesión; devuelve su `Source` |
 | `TokenManager::access_token()` / `force_refresh()` / `client_id()` | Token vigente, renovado si hace falta |
+| `TwitchConnector::start(&Handle, Arc<TokenManager>, Arc<dyn EventSink>)` | Abre EventSub y lo mantiene; `PlatformConnector` |
 | `SUBSCRIPTIONS` / `subscription_requests(user_id)` | Las ocho suscripciones y sus peticiones |
 | `TwitchApi::new(client_id)` | Cliente de Helix: `validate`, `create_subscription` y `list_subscriptions` |
 | `TokenInfo`, `SubscriptionRequest`, `CreatedSubscription`, `SubscriptionList` | Datos que entran y salen de la API |
-| `OAuthError` / `ApiError` | Fallos tipados del inicio de sesión y de la API |
+| `OAuthError` / `ApiError` / `ConnectError` | Fallos tipados del inicio de sesión, de la API y de la preparación del conector |
 | `DEFAULT_REDIRECT_URI` / `DEFAULT_SCOPES` | Callback y permisos por defecto |
 
-Dependencias: `syon-app`, `syon-domain`, `serde`, `serde_json`, `reqwest`, `base64`, `rand`, `log` y `tokio`.
+Dependencias: `syon-app`, `syon-domain`, `serde`, `serde_json`, `reqwest`, `base64`, `rand`,
+`tokio-tungstenite`, `futures-util`, `log` y `tokio`.

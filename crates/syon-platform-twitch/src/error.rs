@@ -100,3 +100,22 @@ impl fmt::Display for ApiError {
 }
 
 impl Error for ApiError {}
+
+/// No se pudo preparar la conexión a EventSub.
+#[derive(Debug)]
+pub enum ConnectError {
+    /// No se pudo inicializar el cliente HTTP (por ejemplo, TLS).
+    Http(String),
+}
+
+impl fmt::Display for ConnectError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Http(detail) => {
+                write!(f, "no se pudo preparar el cliente HTTP de Twitch: {detail}")
+            }
+        }
+    }
+}
+
+impl Error for ConnectError {}

@@ -9,8 +9,10 @@ mod api;
 mod callback;
 mod clock;
 mod config;
+mod connector;
 mod error;
 mod events;
+mod messages;
 mod oauth_client;
 mod session;
 mod subscriptions;
@@ -23,7 +25,8 @@ pub use api::{
     TwitchApi,
 };
 pub use config::{DEFAULT_REDIRECT_URI, DEFAULT_SCOPES, TwitchAppConfig};
-pub use error::{ApiError, OAuthError};
+pub use connector::TwitchConnector;
+pub use error::{ApiError, ConnectError, OAuthError};
 pub use events::event_from_notification;
 pub use oauth_client::OAuthClient;
 pub use session::{Source, TokenManager};
