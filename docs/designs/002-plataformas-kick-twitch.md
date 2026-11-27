@@ -81,8 +81,9 @@ No se añade un puerto de envío de chat: F3 lo diseña cuando haya un consumido
   de ajustes). Su ADR cubre el formato y las alternativas, entre ellas el llavero del sistema
   (decisión 2).
 - El `client_secret` de Kick es un secreto de la aplicación, no de la persona: no va en `settings.toml`
-  (que se edita a mano y se comparte al reportar un problema) ni en el archivo de tokens. De dónde
-  viene queda por decidir (sección 14, pendiente 6).
+  (que se edita a mano y se comparte al reportar un problema) ni en el archivo de tokens. Va incrustado en
+  el binario al compilar ([ADR-0018](../adr/0018-credenciales-de-aplicacion-incrustadas.md), sección 14,
+  punto 6).
 
 ## 6. Kick
 
@@ -199,15 +200,14 @@ documento como decididas y se revisan si algo cambia:
    autorizar de nuevo en F3.
 5. **Seguidores:** `Followed` junto a `FollowersUpdated` (sección 8).
 
-**Pendiente, no cubierto por la aceptación:**
+**Decisión posterior a la aceptación (2026-11-26):**
 
-6. **Dónde vive el `client_secret` de Kick:** variable de entorno, como hacía el prototipo con `.env`
-   (sin migrar `dotenvy`), o una entrada de aplicación en el almacén de credenciales. `Settings` no
-   tiene ese campo y no debe tenerlo (el diseño 001 ya señala como defecto del prototipo que lo
-   mezclara con los ajustes). Una aplicación de escritorio distribuida no puede guardar un secreto de
-   aplicación de forma confidencial; si Kick lo exige con PKCE, hay que decidir qué se acepta. El OAuth ya
-   recibe el valor en `KickAppConfig::new(client_id, client_secret)` y el ADR-0014 deja que lo decida el
-   engine o el binario: debe resolverse antes de conectar esa configuración.
+6. **Dónde vive el `client_secret`** (de Kick y de Twitch): lo decidió el autor, incrustado en el binario
+   con la aplicación del autor e inyectado al compilar con variables de entorno que nunca se versionan,
+   con la variable de ejecución por delante para desarrollo. `Settings` no tiene ni debe tener ese campo.
+   El detalle, las alternativas y los riesgos están en el
+   [ADR-0018](../adr/0018-credenciales-de-aplicacion-incrustadas.md), y su cableado en el
+   [diseño 003](003-arranque-de-plataformas-y-binario.md).
 
 ## 15. Riesgos
 

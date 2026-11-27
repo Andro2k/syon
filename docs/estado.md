@@ -23,14 +23,23 @@ el trabajo sin depender de una conversación.
   ([ADR-0012](adr/0012-almacen-de-credenciales.md)), `syon-platform-kick` con la traducción de eventos
   (`serde_json`, [ADR-0013](adr/0013-json-tolerante-en-adaptadores.md)), el OAuth 2.1 con PKCE
   (`reqwest`, [ADR-0014](adr/0014-oauth-de-kick.md)) y el feed en tiempo real con reconexión y
-  `KickConnector` (`tokio-tungstenite`, [ADR-0015](adr/0015-conexion-al-feed-de-kick.md)). Sigue:
-  `feat(twitch)`, OAuth y cliente de la API (sección 12, punto 9).
+  `KickConnector` (`tokio-tungstenite`, [ADR-0015](adr/0015-conexion-al-feed-de-kick.md)), y
+  `syon-platform-twitch` (puntos 9 y 10): OAuth y cliente de Helix
+  ([ADR-0016](adr/0016-oauth-y-api-de-twitch.md)), traducción de eventos, tabla de las ocho suscripciones
+  y conexión a EventSub con `TwitchConnector` ([ADR-0017](adr/0017-conexion-a-eventsub-de-twitch.md)).
+  Sigue el punto 11 (el binario) y el cableado de los conectores.
+- Propuesto, pendiente de aceptar: el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md), que
+  cubre el punto 11 y el hueco que el plan no recogía (ajustes de Kick, arranque de conectores en el
+  engine y el binario `syon`). El autor decidió el 2026-11-26 que las credenciales de la aplicación van
+  incrustadas en el binario ([ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md)).
 
 ## Pendiente de decidir o verificar
 
-- Decidir dónde vive el `client_secret` de Kick ([diseño 002](designs/002-plataformas-kick-twitch.md),
-  sección 14, pendiente 6) antes de conectar `KickAppConfig` en el engine o el binario (ADR-0014): no
-  puede ir en `settings.toml`.
+- Aceptar o corregir el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md) (decisiones de su
+  sección 11) antes de implementarlo.
+- Antes de publicar (F10): verificar los términos de Kick y de Twitch sobre secretos de aplicación
+  incrustados y, para Twitch, si un cliente público con flujo de dispositivo evita el secreto
+  ([ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md)).
 - Los límites de Twitch del diseño 002 (300 suscripciones por conexión, 3 conexiones, `max_total_cost` de
   10 con token de usuario, coste 0 con permiso del usuario) salen de documentación y foros consultados el
   2026-11-26; el plazo de bienvenida y el coste real se confirman en vivo al implementar.
