@@ -23,10 +23,11 @@ para cualquier persona o herramienta que cambie el repositorio.
 
 ## Disposición de crates
 
-Estado: F1 completa ([WT-0.2.0_01](docs/walkthroughs/WT-0.2.0_01.md)). `syon-domain`, `syon-app`,
+Estado: F1 completa ([WT-0.2.0_01](docs/walkthroughs/WT-0.2.0_01.md)) y F2 implementada, a falta del
+contraste en vivo ([WT-0.3.0_01](docs/walkthroughs/WT-0.3.0_01.md)). `syon-domain`, `syon-app`,
 `syon-engine` (arranque, bus de eventos, rutas de datos, registro, runtime y conectores), `syon-storage-toml`, `syon-storage-credentials` y `syon-platform-kick` (eventos, OAuth y feed en tiempo real) existen; el
 engine ya lee los ajustes y arranca el registro ([ADR-0010](docs/adr/0010-arranque-del-engine.md)). Los
-demás adaptadores llegan en F2, con el [diseño 001](docs/designs/001-nucleo-dominio-eventos.md) como base.
+demás adaptadores llegan con su fase, con el [diseño 001](docs/designs/001-nucleo-dominio-eventos.md) como base.
 
 ```text
 crates/

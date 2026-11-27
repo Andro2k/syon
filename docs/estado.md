@@ -27,26 +27,27 @@ el trabajo sin depender de una conversación.
   `syon-platform-twitch` (puntos 9 y 10): OAuth y cliente de Helix
   ([ADR-0016](adr/0016-oauth-y-api-de-twitch.md)), traducción de eventos, tabla de las ocho suscripciones
   y conexión a EventSub con `TwitchConnector` ([ADR-0017](adr/0017-conexion-a-eventsub-de-twitch.md)).
-  Sigue el punto 11 (el binario) y el cableado de los conectores.
+  El punto 11 (el binario) y el cableado de los conectores se hicieron con el diseño 003.
 - Propuesto, pendiente de aceptar: el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md), que
   cubre el punto 11 y el hueco que el plan no recogía (ajustes de Kick, arranque de conectores en el
   engine y el binario `syon`). El autor decidió el 2026-11-26 que las credenciales de la aplicación van
   incrustadas en el binario ([ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md)).
-  Parche 2 del plan del 003 hecho (2026-11-27): `KickSettings` en `syon-app` y la sección `[kick]` en
-  `syon-storage-toml` (aplicado como 04f00bd); un archivo de F1 sin la sección sigue cargando. Parche 3
-  hecho: `AppPaths::credentials_file()` (aplicado como a5763d7). Parche 4 hecho: `AppCredentials`,
-  `PlatformCredentials`, `Engine::start_platforms` y `stop_platforms` para Kick, aplicado como b7882aa (sin las credenciales ni el
-  enlace de inicio de sesión, que llegan con Twitch en el parche 7). Parche 5 hecho: `Engine::login` para Kick (`LoginOutcome`, `LoginError`; Twitch
-  devuelve `Unsupported` hasta el parche 7). Parche 6 hecho: el crate binario `syon` con `run`, `login`, resolución de credenciales,
-  `build.rs` y la salida de eventos (aplicado como 635d6f9; el 5 como ee79974). Parche 7 hecho: la sección `[twitch]` (`enabled`) en los ajustes. Parche 8 hecho: Twitch cableado en el
-  engine y el binario (`start_platforms` recibe las credenciales y un callback para el enlace de inicio
-  de sesión; `login` admite Twitch; `LoginError::Unsupported` desaparece). Sigue la documentación de
-  cierre (9).
+  Los siete parches de código del plan del 003 están aplicados: `[kick]` en los ajustes (04f00bd),
+  `AppPaths::credentials_file()` (a5763d7), `AppCredentials`, `start_platforms` y `stop_platforms`
+  (b7882aa), `Engine::login` (ee79974), el binario `syon` con `run` y `login` (635d6f9), `[twitch]`
+  en los ajustes (fd1c04c) y el cableado de Twitch en el engine y el binario (288f3d1). El parche 9
+  cierra F2 por el lado de SYON con `docs/architecture/suscripciones.md`, la tabla de paridad y el
+  [walkthrough WT-0.3.0_01](walkthroughs/WT-0.3.0_01.md).
 
 ## Pendiente de decidir o verificar
 
 - Aceptar o corregir el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md) (decisiones de su
-  sección 11); los parches 2 a 8 se adelantaron sin aceptarlo, así que conviene decidirlo antes del parche 9.
+  sección 11): sigue en «Propuesta» aunque sus siete parches de código ya están aplicados.
+- Contraste en vivo con la aplicación real, a cargo del autor: `syon login kick`, `syon login twitch`,
+  eventos reales de ambas plataformas y la línea de coste de EventSub en `syon.log`
+  ([suscripciones](architecture/suscripciones.md)). F2 no se da por cerrada hasta verlo.
+- Confirmar el job de Windows de la CI con el crate `syon` y los crates de plataformas, que solo se han
+  ejecutado en Linux.
 - Antes de publicar (F10): verificar los términos de Kick y de Twitch sobre secretos de aplicación
   incrustados y, para Twitch, si un cliente público con flujo de dispositivo evita el secreto
   ([ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md)).
