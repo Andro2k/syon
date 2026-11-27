@@ -1,5 +1,6 @@
 use crate::{
-    AppPaths, EventBus, LoggingConfig, LoggingError, PlatformStart, PlatformStartError,
+    AppCredentials, AppPaths, EventBus, LoggingConfig, LoggingError, LoginError, LoginOutcome,
+    PlatformStart, PlatformStartError,
     connectors::ConnectorRegistry,
     init_logging,
     platforms::kick_channel,
@@ -8,7 +9,8 @@ use crate::{
 use std::{error::Error, fmt, io, sync::Arc};
 use syon_app::{ConnectionStatus, PlatformConnector, Settings};
 use syon_domain::Platform;
-use syon_platform_kick::KickConnector;
+use syon_platform_kick::{KickAppConfig, KickConnector, OAuthClient, TokenManager};
+use syon_storage_credentials::TomlCredentialStore;
 use syon_storage_toml::TomlSettingsStore;
 use tokio::runtime::{Builder, Handle, Runtime};
 
@@ -100,6 +102,41 @@ impl Engine {
     /// Pide detenerse a todos los conectores registrados. Puede llamarse más de una vez.
     pub fn stop_platforms(&self) {
         self.connectors.stop_all();
+    }
+
+    /// Deja lista la sesión de `platform` con las credenciales de la aplicación: reutiliza la
+    /// guardada si sigue vigente, la renueva si va a vencer o inicia sesión en el navegador. Cada
+    /// cambio se guarda en `credentials.toml`. `on_url` recibe el enlace de autorización solo si
+    /// hace falta un inicio de sesión nuevo, y la llamada espera a que la persona autorice.
+    ///
+    /// Bloquea sobre el runtime del engine, así que debe llamarse desde fuera de él (por ejemplo,
+    /// desde el hilo principal) y no desde una tarea asíncrona. Por ahora solo admite Kick.
+    pub fn login(
+        &self,
+        platform: Platform,
+        credentials: &AppCredentials,
+        on_url: impl FnOnce(&str),
+    ) -> Result<LoginOutcome, LoginError> {
+        if platform != Platform::Kick {
+            return Err(LoginError::Unsupported(platform));
+        }
+        let config = KickAppConfig::new(&credentials.client_id, &credentials.client_secret);
+        let store = Arc::new(TomlCredentialStore::new(self.paths.credentials_file()));
+        let started = self.runtime.block_on(async {
+            let oauth = OAuthClient::new(config)?;
+            TokenManager::start(oauth, store, on_url).await
+        });
+        match started {
+            Ok((_session, source)) => {
+                let outcome = LoginOutcome::from(source);
+                log::info!("engine: sesión de Kick lista ({outcome:?})");
+                Ok(outcome)
+            }
+            Err(error) => {
+                log::warn!("engine: no se pudo iniciar sesión en Kick: {error}");
+                Err(LoginError::Failed(error.to_string()))
+            }
+        }
     }
 
     /// Estado de la conexión de cada plataforma registrada.

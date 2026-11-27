@@ -35,13 +35,14 @@ el trabajo sin depender de una conversación.
   Parche 2 del plan del 003 hecho (2026-11-27): `KickSettings` en `syon-app` y la sección `[kick]` en
   `syon-storage-toml` (aplicado como 04f00bd); un archivo de F1 sin la sección sigue cargando. Parche 3
   hecho: `AppPaths::credentials_file()` (aplicado como a5763d7). Parche 4 hecho: `AppCredentials`,
-  `PlatformCredentials`, `Engine::start_platforms` y `stop_platforms` para Kick (sin las credenciales ni el
-  enlace de inicio de sesión, que llegan con Twitch en el parche 7). Siguen los parches 5 a 8 de ese plan.
+  `PlatformCredentials`, `Engine::start_platforms` y `stop_platforms` para Kick, aplicado como b7882aa (sin las credenciales ni el
+  enlace de inicio de sesión, que llegan con Twitch en el parche 7). Parche 5 hecho: `Engine::login` para Kick (`LoginOutcome`, `LoginError`; Twitch
+  devuelve `Unsupported` hasta el parche 7). Siguen los parches 6 a 8 de ese plan.
 
 ## Pendiente de decidir o verificar
 
 - Aceptar o corregir el [diseño 003](designs/003-arranque-de-plataformas-y-binario.md) (decisiones de su
-  sección 11); los parches 2 a 4 se adelantaron sin aceptarlo, así que conviene decidirlo antes de los parches 5 a 8.
+  sección 11); los parches 2 a 5 se adelantaron sin aceptarlo, así que conviene decidirlo antes de los parches 6 a 8.
 - Antes de publicar (F10): verificar los términos de Kick y de Twitch sobre secretos de aplicación
   incrustados y, para Twitch, si un cliente público con flujo de dispositivo evita el secreto
   ([ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md)).

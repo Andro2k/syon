@@ -11,6 +11,7 @@ syon-app.workspace = true
 syon-domain.workspace = true
 syon-storage-toml.workspace = true
 syon-platform-kick.workspace = true
+syon-storage-credentials.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "time"] }
 log.workspace = true
 env_logger.workspace = true

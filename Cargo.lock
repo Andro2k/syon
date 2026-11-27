@@ -1187,6 +1187,7 @@ dependencies = [
  "syon-app",
  "syon-domain",
  "syon-platform-kick",
+ "syon-storage-credentials",
  "syon-storage-toml",
  "tokio",
 ]
