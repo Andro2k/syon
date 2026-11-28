@@ -1,6 +1,6 @@
 # Diseño 004: chat unificado y envío de mensajes (primera parte de F3)
 
-- Estado: Propuesta
+- Estado: Aceptado (2026-11-27); propuesto el 2026-11-27
 - Fase: F3
 - Fecha: 2026-11-27
 

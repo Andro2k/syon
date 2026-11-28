@@ -43,9 +43,9 @@ el trabajo sin depender de una conversación.
   cierra F2 por el lado de SYON con `docs/architecture/suscripciones.md`, la tabla de paridad y el
   [walkthrough WT-0.3.0_01](walkthroughs/WT-0.3.0_01.md).
 
-- F3 empieza con el [diseño 004](designs/004-chat-unificado-y-envio.md), propuesto el 2026-11-27: chat
+- F3 empieza con el [diseño 004](designs/004-chat-unificado-y-envio.md), aceptado el 2026-11-27: chat
   unificado y envío de mensajes a Kick y Twitch. Los comandos, filtros y antispam van en otro diseño.
-  Sin código todavía; sus decisiones (sección 12) están por aceptar.
+  Sin código todavía; se implementa según su plan de parches.
 
 ## Frentes de trabajo
 
@@ -55,7 +55,7 @@ parche aplicado. La columna «Responsable» la rellena quien coordina; vacía si
 
 | Frente | Estado | Crates y archivos que toca | Responsable |
 |--------|--------|----------------------------|-------------|
-| Chat unificado y envío ([diseño 004](designs/004-chat-unificado-y-envio.md)) | Diseño propuesto, falta aceptarlo; después, 5 parches de código | `syon-app`, `syon-platform-twitch`, `syon-platform-kick`, `syon-engine`, `syon` | |
+| Chat unificado y envío ([diseño 004](designs/004-chat-unificado-y-envio.md)) | En curso (diseño aceptado; 5 parches de código pendientes) | `syon-app`, `syon-platform-twitch`, `syon-platform-kick`, `syon-engine`, `syon` | Gemini |
 | Comandos, filtros y antispam (F3, parte 2) | Sin empezar; su diseño se puede escribir ya, solo en `docs/designs/`. Depende de dos decisiones del 004: los roles en `ChatMessage` y no reaccionar a los mensajes propios | Solo documentación hasta que se acepte | |
 | Contraste en vivo de Kick y Twitch (F2) | Pendiente: `syon login` de ambas, eventos reales y la línea de coste de EventSub | Nada de código; con la aplicación real | Autor |
 | Job de Windows de la CI con `syon` y los crates de plataformas | Pendiente de confirmar | Nada | Autor |

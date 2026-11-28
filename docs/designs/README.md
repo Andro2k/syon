@@ -12,4 +12,4 @@ Estados: `Propuesta` · `Aceptado` · `Implementado` · `Descartado`.
 | [001](001-nucleo-dominio-eventos.md) | Núcleo: dominio, bus de eventos, configuración y logging | F1 | Implementado |
 | [002](002-plataformas-kick-twitch.md) | Plataformas: Kick y Twitch | F2 | Aceptado |
 | [003](003-arranque-de-plataformas-y-binario.md) | Arranque de plataformas y binario | F2 | Aceptado |
-| [004](004-chat-unificado-y-envio.md) | Chat unificado y envío de mensajes | F3 | Propuesta |
+| [004](004-chat-unificado-y-envio.md) | Chat unificado y envío de mensajes | F3 | Aceptado |
