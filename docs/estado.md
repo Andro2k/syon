@@ -47,6 +47,26 @@ el trabajo sin depender de una conversación.
   unificado y envío de mensajes a Kick y Twitch. Los comandos, filtros y antispam van en otro diseño.
   Sin código todavía; sus decisiones (sección 12) están por aceptar.
 
+## Frentes de trabajo
+
+Quien empieza un frente lo anota aquí **en su primer parche** y solo edita su propia fila; así varias
+personas o IAs pueden trabajar a la vez sin pisarse. Al terminar, la fila pasa a «Hecho» con el hash del
+parche aplicado. La columna «Responsable» la rellena quien coordina; vacía significa que nadie lo tomó.
+
+| Frente | Estado | Crates y archivos que toca | Responsable |
+|--------|--------|----------------------------|-------------|
+| Chat unificado y envío ([diseño 004](designs/004-chat-unificado-y-envio.md)) | Diseño propuesto, falta aceptarlo; después, 5 parches de código | `syon-app`, `syon-platform-twitch`, `syon-platform-kick`, `syon-engine`, `syon` | |
+| Comandos, filtros y antispam (F3, parte 2) | Sin empezar; su diseño se puede escribir ya, solo en `docs/designs/`. Depende de dos decisiones del 004: los roles en `ChatMessage` y no reaccionar a los mensajes propios | Solo documentación hasta que se acepte | |
+| Contraste en vivo de Kick y Twitch (F2) | Pendiente: `syon login` de ambas, eventos reales y la línea de coste de EventSub | Nada de código; con la aplicación real | Autor |
+| Job de Windows de la CI con `syon` y los crates de plataformas | Pendiente de confirmar | Nada | Autor |
+| TTS (F4) | Sin empezar; su ADR de motor y su diseño son independientes de F3 | Solo documentación hasta que se acepte | |
+
+**Archivos que varios frentes tocan** y donde hay que tener más cuidado: `Cargo.toml` y `Cargo.lock`
+(regenerar con `cargo check --workspace --offline`, nunca `cargo update`; si hay conflicto, descartar el
+lock y regenerarlo), `docs/estado.md`, `docs/deps.md`, `docs/requirements/paridad.md`, los índices de
+`docs/adr/` y `docs/designs/`, `crates/syon-engine/src/engine.rs` y `lib.rs`, y
+`crates/syon/src/commands.rs`. Antes de exportar, `git fetch` y `git rebase origin/master`.
+
 ## Pendiente de decidir o verificar
 
 - Contraste en vivo con la aplicación real, a cargo del autor: `syon login kick`, `syon login twitch`,
@@ -85,29 +105,51 @@ el trabajo sin depender de una conversación.
 
 1. `git clone https://github.com/Andro2k/syon`, o `git pull` si ya existe, y `git log --oneline`
    para ver qué parches están aplicados.
-2. Leer [AGENTS.md](../AGENTS.md), este archivo y la sección 12 del diseño 001.
+2. Leer [AGENTS.md](../AGENTS.md), este archivo completo y el diseño de tu frente en `docs/designs/` (su
+   sección «Plan de parches»). Si el repositorio contradice lo que te dijeron, manda el repositorio.
 3. Recrear el entorno si falta Rust 1.91.1:
    - Con rustup: `rustup toolchain install` (lee `rust-toolchain.toml`).
    - En Ubuntu sin rustup: `apt-get install -y cargo-1.91 rustc-1.91 rust-1.91-clippy rustfmt-1.91
      build-essential pkg-config` y `export PATH=/usr/lib/rust-1.91/bin:$PATH`.
    - `cargo-deny` (verificado con 0.22.1) y `cargo-machete` (verificado con 0.10.1): binarios de
      las versiones publicadas en GitHub de EmbarkStudios/cargo-deny y bnjbvr/cargo-machete.
-4. Ejecutar las comprobaciones de AGENTS.md antes de cualquier cambio, para partir de verde.
-5. Entregar según AGENTS.md. Si el autor todavía no aplicó la tanda anterior, la nueva se numera a
-   continuación y se indica cuáles aplicar; los parches se verifican siempre sobre un clon limpio
-   de `origin/master`.
+4. Partir de verde: `./validar.sh` (ver el README) ejecuta las comprobaciones de AGENTS.md y las de
+   dependencias. Para entregar, repetirlo sobre un clon limpio de `origin/master` con los parches aplicados
+   con `git am` sin `-3` y con su propio `target`, nunca compartido con otra copia.
+5. Entregar según AGENTS.md. El autor aplica los parches con otro hash, así que antes de cada tanda hay
+   que hacer `git fetch` y `git reset --hard origin/master`, y la nueva tanda se numera desde `0001`, salvo
+   que el autor pida otra numeración. Si el autor todavía no aplicó la tanda anterior, la nueva se numera a
+   continuación y se indica cuáles aplicar.
+
+Convenciones que ya se han corregido más de una vez:
+
+- Los walkthroughs se llaman `WT-<versión>_<NN>.md` con la versión de la fase: F0 `0.1.0`, F1 `0.2.0`,
+  F2 `0.3.0`.
+- Una prueba que instala estado global del proceso (`Engine::start` instala el registro) va en su propio
+  binario de `crates/<crate>/tests/`, con una sola función de prueba.
+- Los datos de las plataformas se contrastan con su documentación oficial; lo que salga de otras fuentes se
+  marca «por confirmar en vivo» en el diseño. Las credenciales de la aplicación se resuelven solo en el
+  binario ([ADR-0018](adr/0018-credenciales-de-aplicacion-incrustadas.md)) y todo cuelga de `~/.SYON`
+  ([ADR-0020](adr/0020-carpeta-personal-punto-syon.md)).
+- Un parche que adelanta código de un diseño sin aceptar lo dice en el mensaje final y en este archivo.
+- En el entorno de Ubuntu sin rustup, `sh` no admite `set -o pipefail` (usar `bash`), y cada `target`
+  completo pesa varios GB: borrar los de copias anteriores antes de compilar otra.
 
 Notas del entorno: la API anónima de GitHub devuelve 403 al superar su límite de consultas, así
 que para ver el estado de la CI hay que abrir la pestaña Actions del repositorio.
 
 ## Prompt de traspaso
 
-Para pasar el trabajo a otra IA, pegar esto y completar la última línea:
+Para pasar el trabajo a otra IA, pegar esto y completar la última línea. Lo que cambia con el tiempo vive
+en este archivo y no en el prompt, así que no hace falta actualizarlo a mano:
 
 ```text
-Continúa el proyecto SYON (https://github.com/Andro2k/syon). Haz git clone, lee AGENTS.md,
-docs/estado.md y la sección 12 de docs/designs/001-nucleo-dominio-eventos.md, y revisa con git log
-qué parches están aplicados. Respeta las reglas de arquitectura y de entrega de AGENTS.md: parches
-atómicos de git format-patch, verificados sobre un clon limpio, con la autoría y la coautoría
-indicadas. Actualiza docs/estado.md al terminar cada paso. Tarea concreta: <qué sigue>.
+Continúa el proyecto SYON (https://github.com/Andro2k/syon). Haz git clone (o git pull --ff-only si ya
+existe) y lee, en este orden: AGENTS.md, docs/estado.md completo (incluidos «Frentes de trabajo» y «Cómo
+retomar el trabajo») y el diseño de tu frente en docs/designs/, con su «Plan de parches». Revisa con git log
+qué parches están aplicados: el autor los aplica con otro hash, así que parte siempre de origin/master.
+Antes de empezar, anota tu frente en la tabla de docs/estado.md y no toques los archivos de otros frentes.
+Entrega parches atómicos de git format-patch, validados con ./validar.sh y repetidos sobre un clon limpio,
+con la autoría y la coautoría de AGENTS.md. Actualiza docs/estado.md al terminar cada paso. Si el
+repositorio contradice este mensaje, manda el repositorio. Tarea concreta: <frente o paso>.
 ```

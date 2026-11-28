@@ -144,6 +144,9 @@ Ubuntu y Windows.
 7. Se actualizan en el mismo parche que los provoca la tabla de paridad, `docs/deps.md`,
    el índice de ADR o de diseños que corresponda y `docs/estado.md` cuando se completa un
    paso del plan.
+8. Si varias personas o IAs trabajan a la vez, cada una anota su frente en la tabla «Frentes de trabajo» de
+   `docs/estado.md` en su primer parche, solo edita su propia fila y no toca los archivos de otros
+   frentes. Las dudas sobre el contexto se resuelven en ese archivo, no en la conversación.
 
 ## Referencias externas
 
