@@ -1,6 +1,6 @@
 # ADR-0009: Rutas de datos con `etcetera`, resueltas solo en `syon-engine`
 
-- Estado: Aceptada
+- Estado: Reemplazada por ADR-0020
 - Fecha: 2026-11-25
 
 ## Contexto

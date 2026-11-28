@@ -16,7 +16,7 @@ Estados: `Propuesta` · `Aceptada` · `Reemplazada por ADR-NNNN` · `Descartada`
 | [0006](0006-registro-de-diagnostico.md) | Registro de diagnóstico con `log`, `env_logger` y un archivo acotado | Aceptada |
 | [0007](0007-bus-de-eventos.md) | Bus de eventos con un canal acotado por consumidor | Aceptada |
 | [0008](0008-configuracion-toml.md) | Configuración en TOML, preferencias separadas del estado y formato propio del adaptador | Aceptada |
-| [0009](0009-rutas-de-datos.md) | Rutas de datos con `etcetera`, resueltas solo en `syon-engine` | Aceptada |
+| [0009](0009-rutas-de-datos.md) | Rutas de datos con `etcetera`, resueltas solo en `syon-engine` | Reemplazada por ADR-0020 |
 | [0010](0010-arranque-del-engine.md) | Arranque del engine y recuperación de ajustes inválidos | Aceptada |
 | [0011](0011-runtime-asincrono-del-engine.md) | Runtime asíncrono propiedad del engine | Aceptada |
 | [0012](0012-almacen-de-credenciales.md) | Almacén de credenciales en un archivo TOML con permisos restringidos | Aceptada |
@@ -27,6 +27,7 @@ Estados: `Propuesta` · `Aceptada` · `Reemplazada por ADR-NNNN` · `Descartada`
 | [0017](0017-conexion-a-eventsub-de-twitch.md) | Conexión a EventSub de Twitch por WebSocket con cambio de conexión sin pérdidas | Aceptada |
 | [0018](0018-credenciales-de-aplicacion-incrustadas.md) | Credenciales de la aplicación incrustadas en el binario en tiempo de compilación | Aceptada |
 | [0019](0019-guardado-con-esquema-mas-nuevo.md) | Un `save` no reescribe ajustes de un esquema más nuevo | Propuesta |
+| [0020](0020-carpeta-personal-punto-syon.md) | Una sola carpeta `~/.SYON` para configuración, datos y caché | Aceptada |
 
 Para crear uno nuevo: copiar [0000-plantilla.md](0000-plantilla.md), usar el
 siguiente número libre y añadir la fila a esta tabla en el mismo commit.
