@@ -62,7 +62,7 @@ parche aplicado. La columna «Responsable» la rellena quien coordina; vacía si
 | Contraste en vivo de Kick y Twitch (F2) | Pendiente: `syon login` de ambas, eventos reales y la línea de coste de EventSub | Nada de código; con la aplicación real | Autor |
 | Job de Windows de la CI con `syon` y los crates de plataformas | Pendiente de confirmar | Nada | Autor |
 | TTS (F4) | Solo Kokoro por decisión del autor (2026-11-27): ADR-0021 y [diseño 006](designs/006-tts.md) corregidos, pendientes de aceptación | Solo `docs/adr/` (0021), `docs/designs/` (006), la fila de TTS de `docs/requirements/paridad.md` y mi fila de este archivo; sin código hasta que se acepten | Claude |
-| Revisión de F3 (correcciones menores tras revisar los frentes de chat, comandos y antispam) | Hecho ([WT-0.4.2_01](walkthroughs/WT-0.4.2_01.md)): eco propio, nombres de comando inalcanzables y texto del usuario en `{args}` y `{user}`; falta que el autor aplique los parches y anote los hashes | `syon-engine/src/commands.rs`, `syon-storage-toml/src/format.rs`, `docs/designs/005-comandos-filtros-antispam.md` y mi fila de este archivo | Claude |
+| Revisión de F3 (correcciones tras revisar los frentes de chat, comandos y antispam; contraste en vivo de Kick del 2026-11-28) | En curso: los comandos no responden en Kick porque el feed no trae `sender.user_id` (ver el walkthrough WT-0.4.2_02); la primera parte quedó hecha ([WT-0.4.2_01](walkthroughs/WT-0.4.2_01.md)) | `syon-platform-kick/src/events.rs`, `syon-engine/src/commands.rs` y mi fila de este archivo | Claude |
 
 **Archivos que varios frentes tocan** y donde hay que tener más cuidado: `Cargo.toml` y `Cargo.lock`
 (regenerar con `cargo check --workspace --offline`, nunca `cargo update`; si hay conflicto, descartar el
