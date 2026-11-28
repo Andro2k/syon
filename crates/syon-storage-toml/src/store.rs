@@ -7,15 +7,15 @@ use std::{
 };
 use syon_app::{SCHEMA_VERSION, Settings, SettingsError, SettingsStore};
 
-/// Serializa los guardados de todo el proceso. Dos `save` a la vez usarían el mismo temporal
-/// (`settings.toml.<pid>.tmp`) y uno encontraría que el otro ya lo renombró. Además, dos
-/// `rename` simultáneos sobre el mismo destino pueden fallar según la plataforma (no se ha
-/// verificado en Windows). Guardar es raro y el archivo es pequeño, así que un cierre único
-/// es más simple que un temporal distinto por llamada.
+/// Serializa los guardados de todo el proceso. Dos `save` a la vez usarÃƒÂ­an el mismo temporal
+/// (`settings.toml.<pid>.tmp`) y uno encontrarÃƒÂ­a que el otro ya lo renombrÃƒÂ³. AdemÃƒÂ¡s, dos
+/// `rename` simultÃƒÂ¡neos sobre el mismo destino pueden fallar segÃƒÂºn la plataforma (no se ha
+/// verificado en Windows). Guardar es raro y el archivo es pequeÃƒÂ±o, asÃƒÂ­ que un cierre ÃƒÂºnico
+/// es mÃƒÂ¡s simple que un temporal distinto por llamada.
 static SAVE_LOCK: Mutex<()> = Mutex::new(());
 
 /// Guarda los ajustes en un archivo TOML cuya ruta recibe por constructor: este tipo no
-/// consulta el sistema operativo para ubicarla (diseño 001, sección 7).
+/// consulta el sistema operativo para ubicarla (diseÃƒÂ±o 001, secciÃƒÂ³n 7).
 #[derive(Debug, Clone)]
 pub struct TomlSettingsStore {
     path: PathBuf,
@@ -54,8 +54,8 @@ impl TomlSettingsStore {
         }
     }
 
-    /// Rechaza el guardado si el archivo en disco, o los ajustes recibidos, son de un esquema más
-    /// nuevo que `SCHEMA_VERSION` (ADR-0019). Reescribirlo borraría las claves que esta versión no
+    /// Rechaza el guardado si el archivo en disco, o los ajustes recibidos, son de un esquema mÃƒÂ¡s
+    /// nuevo que `SCHEMA_VERSION` (ADR-0019). Reescribirlo borrarÃƒÂ­a las claves que esta versiÃƒÂ³n no
     /// conoce. Un archivo ausente o ilegible no bloquea: `load` ya lo trata aparte.
     fn refuse_newer_schema(&self, settings: &Settings) -> Result<(), SettingsError> {
         let on_disk = fs::read_to_string(&self.path)
@@ -64,8 +64,8 @@ impl TomlSettingsStore {
         let found = on_disk.unwrap_or(0).max(settings.schema_version);
         if found > SCHEMA_VERSION {
             return Err(self.invalid(format!(
-                "schema_version {found} es más nuevo que el {SCHEMA_VERSION} que conoce esta \
-                 versión de SYON; no se guarda para no perder las claves que no conoce"
+                "schema_version {found} es mÃƒÂ¡s nuevo que el {SCHEMA_VERSION} que conoce esta \
+                 versiÃƒÂ³n de SYON; no se guarda para no perder las claves que no conoce"
             )));
         }
         Ok(())
@@ -89,7 +89,7 @@ impl SettingsStore for TomlSettingsStore {
             Err(error) => return Err(self.io_error(error)),
         };
         let text = String::from_utf8(bytes)
-            .map_err(|_| self.invalid("el archivo no es texto UTF-8 válido"))?;
+            .map_err(|_| self.invalid("el archivo no es texto UTF-8 vÃƒÂ¡lido"))?;
         format::parse(&text).map_err(|detail| self.invalid(detail))
     }
 
@@ -103,7 +103,7 @@ impl SettingsStore for TomlSettingsStore {
         let temp = self.temp_path();
         let result = Self::write_temp(&temp, &content).and_then(|()| fs::rename(&temp, &self.path));
         if let Err(error) = result {
-            // Mejor esfuerzo: el temporal no debe quedar huérfano; el original sigue intacto.
+            // Mejor esfuerzo: el temporal no debe quedar huÃƒÂ©rfano; el original sigue intacto.
             let _ = fs::remove_file(&temp);
             return Err(self.io_error(error));
         }
@@ -115,9 +115,10 @@ impl SettingsStore for TomlSettingsStore {
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicU32, Ordering};
-    use syon_app::LogLevel;
+    use syon_app::{ChatCommand, ChatUserFilter, LogLevel, MinimumChatRole};
+    use syon_domain::Platform;
 
-    /// Carpeta temporal única que se borra al soltarla (sin dependencias de prueba).
+    /// Carpeta temporal ÃƒÂºnica que se borra al soltarla (sin dependencias de prueba).
     struct TempDir(PathBuf);
 
     impl TempDir {
@@ -330,7 +331,7 @@ mod tests {
                     assert!(detail.contains(part), "falta {part:?} en: {detail}");
                 }
             }
-            other => panic!("se esperaba Invalid y llegó {other:?}"),
+            other => panic!("se esperaba Invalid y llegÃƒÂ³ {other:?}"),
         }
         assert!(error.to_string().contains("settings.toml"));
         assert_eq!(
@@ -393,7 +394,7 @@ mod tests {
     #[test]
     fn si_el_rename_falla_no_queda_el_temporal() {
         let dir = TempDir::new();
-        // El destino es una carpeta no vacía: el rename del temporal sobre ella falla.
+        // El destino es una carpeta no vacÃƒÂ­a: el rename del temporal sobre ella falla.
         fs::create_dir_all(dir.file().join("dentro")).unwrap();
         let store = TomlSettingsStore::new(dir.file());
         let error = store.save(&Settings::default()).unwrap_err();
@@ -414,7 +415,7 @@ mod tests {
     #[test]
     fn varios_guardados_a_la_vez_no_fallan_ni_dejan_temporales() {
         let dir = TempDir::new();
-        // Dos instancias sobre el mismo archivo, como harían dos partes de la aplicación.
+        // Dos instancias sobre el mismo archivo, como harÃƒÂ­an dos partes de la aplicaciÃƒÂ³n.
         let stores = [
             TomlSettingsStore::new(dir.file()),
             TomlSettingsStore::new(dir.file()),
@@ -487,5 +488,77 @@ mod tests {
         assert_eq!(store.load().unwrap(), debug_settings());
         fs::write(dir.file(), "schema_version = 0\n").unwrap();
         store.save(&debug_settings()).unwrap();
+    }
+
+    #[test]
+    fn chat_round_trip_conserva_comandos_filtros_y_limites() {
+        let dir = TempDir::new();
+        let store = TomlSettingsStore::new(dir.file());
+        let mut settings = Settings::default();
+        settings.chat.prefix = "?".into();
+        settings.chat.commands.push(ChatCommand {
+            name: "hola".into(),
+            aliases: vec!["hi".into()],
+            response: "Hola {user}: {args}".into(),
+            enabled: true,
+            platforms: vec![Platform::Kick, Platform::Twitch],
+            destinations: vec![Platform::Twitch],
+            minimum_role: MinimumChatRole::Moderator,
+        });
+        settings.chat.ignored_users.push(ChatUserFilter {
+            author_id: Some("17".into()),
+            name: Some("robot".into()),
+        });
+        settings.chat.required_phrases.push("required".into());
+        settings.chat.blocked_phrases.push("spam".into());
+        settings.chat.command_cooldown_seconds = 7;
+        settings.chat.response_cooldown_seconds = 6;
+        settings.chat.platform_interval_seconds = 2;
+        settings.chat.duplicate_window_seconds = 12;
+        store.save(&settings).unwrap();
+        assert_eq!(store.load().unwrap(), settings);
+    }
+
+    #[test]
+    fn seccion_chat_ausente_conserva_compatibilidad_y_usa_defaults() {
+        let dir = TempDir::new();
+        fs::write(dir.file(), "[logging]\nlevel = \"warn\"\n").unwrap();
+        let loaded = TomlSettingsStore::new(dir.file()).load().unwrap();
+        assert_eq!(loaded.chat, Default::default());
+        assert_eq!(loaded.logging.level, LogLevel::Warn);
+    }
+
+    #[test]
+    fn valida_chat_y_no_modifica_el_archivo_invalido() {
+        for (content, expected) in [
+            ("[chat]\nprefix = \"\"\n", "chat.prefix"),
+            (
+                "[[chat.commands]]\nname = \"x\"\nresponse = \"r\"\nminimum_role = \"owner\"\n",
+                "chat.commands",
+            ),
+            (
+                "[[chat.commands]]\nname = \"x\"\nresponse = \"r\"\nplatforms = [\"youtube\"]\n",
+                "platforms",
+            ),
+            (
+                "[chat]\ncommand_cooldown_seconds = 0\n",
+                "command_cooldown_seconds",
+            ),
+            (
+                "[chat]\nresponse_cooldown_seconds = 0\n",
+                "response_cooldown_seconds",
+            ),
+            ("[chat]\nblocked_phrases = [\"\"]\n", "chat.blocked_phrases"),
+            (
+                "[[chat.commands]]\nname = \"x\"\nresponse = \"r\"\n[[chat.commands]]\nname = \"X\"\nresponse = \"r\"\n",
+                "duplicado",
+            ),
+        ] {
+            let dir = TempDir::new();
+            fs::write(dir.file(), content).unwrap();
+            let error = TomlSettingsStore::new(dir.file()).load().unwrap_err();
+            assert!(error.to_string().contains(expected), "{error}");
+            assert_eq!(fs::read_to_string(dir.file()).unwrap(), content);
+        }
     }
 }

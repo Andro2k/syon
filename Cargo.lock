@@ -1262,6 +1262,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "syon-app",
+ "syon-domain",
  "toml",
 ]
 

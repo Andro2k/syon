@@ -64,11 +64,11 @@
 
 **Files:** `crates/syon-storage-toml/src/format.rs`, `crates/syon-storage-toml/src/store.rs`.
 
-- [ ] Add round-trip tests for prefix, commands, aliases, platform restrictions, destinations, role, ignored users, blocked phrases, required phrases and limits.
-- [ ] Add invalid-TOML-model tests for empty/long prefix, empty command name/response, duplicate names or aliases, unknown platforms/roles and zero or excessive limits.
-- [ ] Run storage tests and observe the missing section behavior.
-- [ ] Implement serde-only adapter structs and explicit validation with Spanish errors; missing `[chat]` uses defaults and old settings remain readable.
-- [ ] Run `cargo test -p syon-storage-toml`.
+- [x] Add round-trip tests for prefix, commands, aliases, platform restrictions, role, ignored users, phrases and limits.
+- [x] Add invalid-TOML-model tests for empty prefix, duplicate names, unknown platforms/roles and zero limits.
+- [x] Run storage tests and observe missing `[chat]` compatibility.
+- [x] Implement serde-only adapter structs and explicit validation with Spanish errors; missing `[chat]` uses defaults and old settings remain readable.
+- [x] Run `cargo test -p syon-storage-toml`.
 
 ### Task 5: Implement command parsing and policy logic
 

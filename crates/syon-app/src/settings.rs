@@ -79,6 +79,8 @@ pub struct ChatSettings {
     pub duplicate_window_seconds: u64,
     /// Enfriamiento en segundos por usuario y comando.
     pub command_cooldown_seconds: u64,
+    /// Enfriamiento entre respuestas idénticas por plataforma.
+    pub response_cooldown_seconds: u64,
     /// Intervalo mínimo en segundos entre respuestas por plataforma.
     pub platform_interval_seconds: u64,
 }
@@ -93,6 +95,7 @@ impl Default for ChatSettings {
             blocked_phrases: Vec::new(),
             duplicate_window_seconds: 10,
             command_cooldown_seconds: 5,
+            response_cooldown_seconds: 5,
             platform_interval_seconds: 1,
         }
     }
@@ -109,8 +112,10 @@ pub struct ChatCommand {
     pub response: String,
     /// Si el comando está habilitado.
     pub enabled: bool,
-    /// Plataformas que pueden activar y recibir la respuesta; vacío significa la de origen.
+    /// Plataformas de origen que pueden activar el comando; vacío permite todas.
     pub platforms: Vec<syon_domain::Platform>,
+    /// Plataformas destino; vacío envía a la plataforma de origen.
+    pub destinations: Vec<syon_domain::Platform>,
     /// Nivel mínimo para usar el comando.
     pub minimum_role: MinimumChatRole,
 }
@@ -188,6 +193,7 @@ mod tests {
         assert_eq!(chat.prefix, "!");
         assert!(chat.commands.is_empty());
         assert_eq!(chat.command_cooldown_seconds, 5);
+        assert_eq!(chat.response_cooldown_seconds, 5);
         assert_eq!(chat.platform_interval_seconds, 1);
         assert_eq!(chat.duplicate_window_seconds, 10);
     }
