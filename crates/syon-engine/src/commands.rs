@@ -43,7 +43,12 @@ impl ChatAutomation {
         if message.is_self != Some(false) || message.author_id.is_none() {
             if message.is_self.is_none() || message.author_id.is_none() {
                 self.unknown_identity_skips = self.unknown_identity_skips.saturating_add(1);
-                if self.unknown_identity_skips.is_multiple_of(100) {
+                if self.unknown_identity_skips == 1 {
+                    log::warn!(
+                        "engine: un chat de {:?} se excluyó de la automatización por no traer identidad o autoría verificable; si pasa con todos los chats de esa plataforma, revisa los campos del feed",
+                        event.platform
+                    );
+                } else if self.unknown_identity_skips.is_multiple_of(100) {
                     log::debug!(
                         "engine: {} mensajes sin identidad/autoria verificable se excluyeron de automatización",
                         self.unknown_identity_skips
