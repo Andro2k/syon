@@ -55,10 +55,10 @@
 
 **Interface:** `ChatSettings`, `ChatCommand`, `ChatUserFilter`, `MinimumChatRole`, `ChatSettings::default()`; defaults use `!`, no configured commands, 5-second command cooldown, one send per second per platform and a 10-second duplicate window.
 
-- [ ] Add tests for defaults, valid command fields and exact role authorization hierarchy.
-- [ ] Run `cargo test -p syon-app` and observe the expected failure.
-- [ ] Add the types and a `chat` field to `Settings`; empty `commands` keeps automation inert by default.
-- [ ] Run `cargo test -p syon-app`.
+- [x] Add tests for defaults and role-level definitions; exact authorization hierarchy is tested with engine policy.
+- [x] Run `cargo test -p syon-app`; initial tests established the missing model before implementation.
+- [x] Add the types and a `chat` field to `Settings`; empty `commands` keeps automation inert by default.
+- [x] Run `cargo test -p syon-app`.
 
 ### Task 4: Persist and validate `[chat]`
 

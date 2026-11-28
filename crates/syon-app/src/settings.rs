@@ -13,6 +13,8 @@ pub struct Settings {
     pub kick: KickSettings,
     /// Ajustes de la conexión a Twitch.
     pub twitch: TwitchSettings,
+    /// Ajustes de comandos, filtros y antispam del chat.
+    pub chat: ChatSettings,
 }
 
 impl Default for Settings {
@@ -22,6 +24,7 @@ impl Default for Settings {
             logging: LoggingSettings::default(),
             kick: KickSettings::default(),
             twitch: TwitchSettings::default(),
+            chat: ChatSettings::default(),
         }
     }
 }
@@ -57,6 +60,84 @@ pub struct KickSettings {
 pub struct TwitchSettings {
     /// Si el engine debe conectar con Twitch al arrancar las plataformas.
     pub enabled: bool,
+}
+
+/// Configuración de automatización del chat. Sin comandos configurados permanece inerte.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ChatSettings {
+    /// Prefijo que inicia un comando.
+    pub prefix: String,
+    /// Comandos disponibles.
+    pub commands: Vec<ChatCommand>,
+    /// Usuarios que no pueden activar comandos, por id o nombre.
+    pub ignored_users: Vec<ChatUserFilter>,
+    /// Frases que deben aparecer para permitir comandos.
+    pub required_phrases: Vec<String>,
+    /// Frases que impiden ejecutar comandos.
+    pub blocked_phrases: Vec<String>,
+    /// Ventana en segundos para descartar mensajes repetidos.
+    pub duplicate_window_seconds: u64,
+    /// Enfriamiento en segundos por usuario y comando.
+    pub command_cooldown_seconds: u64,
+    /// Intervalo mínimo en segundos entre respuestas por plataforma.
+    pub platform_interval_seconds: u64,
+}
+
+impl Default for ChatSettings {
+    fn default() -> Self {
+        Self {
+            prefix: "!".into(),
+            commands: Vec::new(),
+            ignored_users: Vec::new(),
+            required_phrases: Vec::new(),
+            blocked_phrases: Vec::new(),
+            duplicate_window_seconds: 10,
+            command_cooldown_seconds: 5,
+            platform_interval_seconds: 1,
+        }
+    }
+}
+
+/// Comando de texto y sus restricciones de uso.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ChatCommand {
+    /// Nombre principal del comando.
+    pub name: String,
+    /// Nombres alternativos.
+    pub aliases: Vec<String>,
+    /// Texto de respuesta con sustituciones literales admitidas.
+    pub response: String,
+    /// Si el comando está habilitado.
+    pub enabled: bool,
+    /// Plataformas que pueden activar y recibir la respuesta; vacío significa la de origen.
+    pub platforms: Vec<syon_domain::Platform>,
+    /// Nivel mínimo para usar el comando.
+    pub minimum_role: MinimumChatRole,
+}
+
+/// Usuario excluido por id estable o por nombre visible normalizado.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ChatUserFilter {
+    /// Identificador de plataforma opcional.
+    pub author_id: Option<String>,
+    /// Nombre visible opcional.
+    pub name: Option<String>,
+}
+
+/// Nivel mínimo requerido para activar un comando.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum MinimumChatRole {
+    /// Cualquier autor identificable.
+    #[default]
+    Everyone,
+    /// Suscriptor o superior.
+    Subscriber,
+    /// VIP o superior.
+    Vip,
+    /// Moderador o superior.
+    Moderator,
+    /// Solo broadcaster.
+    Broadcaster,
 }
 
 /// Nivel de detalle del registro. `Info` es el valor por defecto porque el texto
@@ -99,5 +180,30 @@ mod tests {
         assert!(kick.channel.is_empty());
         assert_eq!(kick.channel_id, None);
         assert_eq!(kick.chatroom_id, None);
+    }
+
+    #[test]
+    fn chat_por_defecto_no_ejecuta_comandos_y_aplica_limites_conservadores() {
+        let chat = ChatSettings::default();
+        assert_eq!(chat.prefix, "!");
+        assert!(chat.commands.is_empty());
+        assert_eq!(chat.command_cooldown_seconds, 5);
+        assert_eq!(chat.platform_interval_seconds, 1);
+        assert_eq!(chat.duplicate_window_seconds, 10);
+    }
+
+    #[test]
+    fn rol_minimo_tiene_niveles_distintos_y_everyone_por_defecto() {
+        assert_eq!(MinimumChatRole::default(), MinimumChatRole::Everyone);
+        let roles = [
+            MinimumChatRole::Everyone,
+            MinimumChatRole::Subscriber,
+            MinimumChatRole::Vip,
+            MinimumChatRole::Moderator,
+            MinimumChatRole::Broadcaster,
+        ];
+        for (index, role) in roles.iter().enumerate() {
+            assert_eq!(roles[index], *role);
+        }
     }
 }

@@ -17,6 +17,7 @@ pub use credential_store::{CredentialError, CredentialStore, Credentials};
 pub use event_sink::EventSink;
 pub use platform_connector::{ConnectionStatus, PlatformConnector};
 pub use settings::{
-    KickSettings, LogLevel, LoggingSettings, SCHEMA_VERSION, Settings, TwitchSettings,
+    ChatCommand, ChatSettings, ChatUserFilter, KickSettings, LogLevel, LoggingSettings,
+    MinimumChatRole, SCHEMA_VERSION, Settings, TwitchSettings,
 };
 pub use settings_store::{SettingsError, SettingsStore};
