@@ -28,7 +28,7 @@ Estados: `Propuesta` · `Aceptada` · `Reemplazada por ADR-NNNN` · `Descartada`
 | [0018](0018-credenciales-de-aplicacion-incrustadas.md) | Credenciales de la aplicación incrustadas en el binario en tiempo de compilación | Aceptada |
 | [0019](0019-guardado-con-esquema-mas-nuevo.md) | Un `save` no reescribe ajustes de un esquema más nuevo | Propuesta |
 | [0020](0020-carpeta-personal-punto-syon.md) | Una sola carpeta `~/.SYON` para configuración, datos y caché | Aceptada |
-| [0021](0021-motores-de-tts-como-procesos-externos.md) | Motores de TTS como procesos externos detrás de un puerto | Propuesta |
+| [0021](0021-motores-de-tts-como-procesos-externos.md) | Kokoro como único motor de TTS, como proceso externo detrás de un puerto | Propuesta |
 
 Para crear uno nuevo: copiar [0000-plantilla.md](0000-plantilla.md), usar el
 siguiente número libre y añadir la fila a esta tabla en el mismo commit.

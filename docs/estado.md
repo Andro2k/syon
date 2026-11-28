@@ -61,7 +61,7 @@ parche aplicado. La columna «Responsable» la rellena quien coordina; vacía si
 | Comandos, filtros y antispam (F3, parte 2) | Implementado en 5 parches de código; límites corregidos para aplicarse por destino; falta confirmar en vivo la forma de los campos opcionales del feed de Kick | `syon-domain`, `syon-app`, `syon-platform-kick`, `syon-platform-twitch`, `syon-storage-toml`, `syon-engine` | Codex |
 | Contraste en vivo de Kick y Twitch (F2) | Pendiente: `syon login` de ambas, eventos reales y la línea de coste de EventSub | Nada de código; con la aplicación real | Autor |
 | Job de Windows de la CI con `syon` y los crates de plataformas | Pendiente de confirmar | Nada | Autor |
-| TTS (F4) | ADR-0021 (motores como procesos externos) propuesto, pendiente de aceptación; [diseño 006](designs/006-tts.md) propuesto, pendiente de aceptación | Solo `docs/adr/` (0021), `docs/designs/` (006) y mi fila de este archivo; sin código hasta que se acepten | Claude |
+| TTS (F4) | Solo Kokoro por decisión del autor (2026-11-27): ADR-0021 y [diseño 006](designs/006-tts.md) corregidos, pendientes de aceptación | Solo `docs/adr/` (0021), `docs/designs/` (006), la fila de TTS de `docs/requirements/paridad.md` y mi fila de este archivo; sin código hasta que se acepten | Claude |
 
 **Archivos que varios frentes tocan** y donde hay que tener más cuidado: `Cargo.toml` y `Cargo.lock`
 (regenerar con `cargo check --workspace --offline`, nunca `cargo update`; si hay conflicto, descartar el
@@ -82,7 +82,7 @@ lock y regenerarlo), `docs/estado.md`, `docs/deps.md`, `docs/requirements/parida
 - Los límites de Twitch del diseño 002 (300 suscripciones por conexión, 3 conexiones, `max_total_cost` de
   10 con token de usuario, coste 0 con permiso del usuario) salen de documentación y foros consultados el
   2026-11-26; el plazo de bienvenida y el coste real se confirman en vivo al implementar.
-- Motores de TTS: el [ADR-0021](adr/0021-motores-de-tts-como-procesos-externos.md) propone Piper, edge-tts y la voz del sistema como procesos externos; el autor lo acepta o lo corrige, y de ahí depende el diseño 006.
+- Motor de TTS: el autor decidió empezar solo con Kokoro. El [ADR-0021](adr/0021-motores-de-tts-como-procesos-externos.md) lo propone ejecutado con `sherpa-onnx-offline-tts` como proceso externo; falta aceptarlo, y confirmar en vivo los argumentos del programa, el paquete de modelo y la calidad del español, de lo que depende el diseño 006.
 - Interfaz: GPUI directo ([ADR-0005](adr/0005-ui-gpui-directo.md)); el spike de F9 valida los criterios.
 - `chrono` sigue en el prototipo con su aviso ignorado en `deny.toml`; se va con el prototipo.
 - Los permisos del archivo de credenciales no se comprueban en Windows (solo en Unix): confirmarlo al

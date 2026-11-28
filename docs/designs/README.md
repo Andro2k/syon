@@ -14,4 +14,4 @@ Estados: `Propuesta` · `Aceptado` · `Implementado` · `Descartado`.
 | [003](003-arranque-de-plataformas-y-binario.md) | Arranque de plataformas y binario | F2 | Aceptado |
 | [004](004-chat-unificado-y-envio.md) | Chat unificado y envío de mensajes | F3 | Aceptado |
 | [005](005-comandos-filtros-antispam.md) | Comandos, filtros y antispam | F3 | Implementado |
-| [006](006-tts.md) | TTS: voz para el chat y los eventos | F4 | Propuesta |
+| [006](006-tts.md) | TTS con Kokoro: voz local para el chat | F4 | Propuesta |

@@ -9,7 +9,7 @@ contra su código antes de cerrar F0. Estados: `Pendiente` · `En curso` · `Hec
 | Twitch: chat y eventos | Sí | F2 | En curso (OAuth, cliente de Helix, traducción de eventos y conector de EventSub en `syon-platform-twitch`, conectados al engine y al binario `syon`; falta el contraste en vivo y el envío de chat, F3) |
 | Chat unificado con 1, 2 o todas las plataformas | Sí | F3 | En curso (envío implementado en puerto, adaptadores, engine y consola; falta filtro de la interfaz en F9 y contraste en vivo) |
 | Comandos, roles (incluidos moderador), filtros de usuario/texto y antispam | Sí | F3 | Hecho (diseño 005 implementado; falta confirmar en vivo los campos opcionales del feed WebSocket de Kick) |
-| TTS con varios motores (edge-tts, Piper y uno local) | Sí | F4 | Pendiente (motores por decidir) |
+| TTS con varios motores (edge-tts, Piper y uno local) | Sí | F4 | Pendiente (el autor decidió el 2026-11-27 empezar solo con Kokoro local, [ADR-0021](../adr/0021-motores-de-tts-como-procesos-externos.md) propuesto; edge-tts y Piper quedan diferidos) |
 | Recompensas, con miniaturas | Sí | F5 | Pendiente |
 | Overlays de alertas, música y chat | Sí | F6 | Pendiente |
 | Widgets: temporizador y cronómetro, explosión de emotes por plataforma, todos ocultables | Sí | F6 | Pendiente |
