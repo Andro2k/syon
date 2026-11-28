@@ -553,6 +553,18 @@ mod tests {
                 "[[chat.commands]]\nname = \"x\"\nresponse = \"r\"\n[[chat.commands]]\nname = \"X\"\nresponse = \"r\"\n",
                 "duplicado",
             ),
+            (
+                "[[chat.commands]]\nname = \"hola mundo\"\nresponse = \"r\"\n",
+                "espacios",
+            ),
+            (
+                "[[chat.commands]]\nname = \"!hola\"\nresponse = \"r\"\n",
+                "prefijo",
+            ),
+            (
+                "[[chat.commands]]\nname = \"x\"\naliases = [\"a b\"]\nresponse = \"r\"\n",
+                "espacios",
+            ),
         ] {
             let dir = TempDir::new();
             fs::write(dir.file(), content).unwrap();

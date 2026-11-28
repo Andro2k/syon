@@ -206,6 +206,12 @@ impl TryFrom<ChatSection> for ChatSettings {
                 if name.trim().is_empty() || name.chars().count() > 64 {
                     return Err("chat.commands.aliases: nombre vacío o demasiado largo".into());
                 }
+                if name.chars().any(char::is_whitespace) || name.starts_with(&section.prefix) {
+                    return Err(format!(
+                        "chat.commands: {name:?} no puede tener espacios ni empezar por el prefijo {:?}: nunca se activaría",
+                        section.prefix
+                    ));
+                }
                 if !seen.insert(name.to_lowercase()) {
                     return Err(format!("chat.commands: nombre o alias duplicado: {name}"));
                 }
