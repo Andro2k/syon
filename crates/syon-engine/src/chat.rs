@@ -73,6 +73,11 @@ impl ChatHandle {
     ///
     /// Bloquea sobre el runtime del engine, así que debe llamarse desde fuera de él.
     pub fn send(&self, platforms: &[Platform], text: &str) -> Vec<SendResult> {
+        self.runtime.block_on(self.send_async(platforms, text))
+    }
+
+    /// Envía `text` desde una tarea asíncrona y devuelve un resultado por destino, en el orden pedido.
+    pub async fn send_async(&self, platforms: &[Platform], text: &str) -> Vec<SendResult> {
         let unique = dedup_platforms(platforms);
         if unique.is_empty() {
             return Vec::new();
@@ -111,22 +116,20 @@ impl ChatHandle {
             }
         }
 
-        self.runtime.block_on(async move {
-            let mut results = Vec::with_capacity(pending.len());
-            for (platform, item) in pending {
-                let outcome = match item {
-                    Pending::Immediate(outcome) => outcome,
-                    Pending::Task(task) => match task.await {
-                        Ok(outcome) => outcome,
-                        Err(error) => Err(SendError::Failed(format!(
-                            "fallo interno al enviar: {error}"
-                        ))),
-                    },
-                };
-                results.push(SendResult { platform, outcome });
-            }
-            results
-        })
+        let mut results = Vec::with_capacity(pending.len());
+        for (platform, item) in pending {
+            let outcome = match item {
+                Pending::Immediate(outcome) => outcome,
+                Pending::Task(task) => match task.await {
+                    Ok(outcome) => outcome,
+                    Err(error) => Err(SendError::Failed(format!(
+                        "fallo interno al enviar: {error}"
+                    ))),
+                },
+            };
+            results.push(SendResult { platform, outcome });
+        }
+        results
     }
 }
 
@@ -258,5 +261,31 @@ mod tests {
                 },
             ]
         );
+    }
+
+    #[test]
+    fn send_async_se_puede_usar_desde_una_tarea_del_runtime() {
+        let runtime = Builder::new_multi_thread()
+            .worker_threads(2)
+            .enable_all()
+            .build()
+            .unwrap();
+        let registry = SenderRegistry::default();
+        let calls = Arc::new(AtomicUsize::new(0));
+        registry.add_sender(Arc::new(FakeSender {
+            platform: Platform::Kick,
+            outcome: Ok(SentMessage {
+                id: Some(MessageId::new("echo-1")),
+            }),
+            calls: Arc::clone(&calls),
+        }));
+        let handle = ChatHandle::new(registry, runtime.handle().clone());
+        let results = runtime.block_on(async move {
+            tokio::spawn(async move { handle.send_async(&[Platform::Kick], "hola").await })
+                .await
+                .unwrap()
+        });
+        assert!(results[0].outcome.is_ok());
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
     }
 }

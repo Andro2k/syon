@@ -11,6 +11,11 @@ puede nombrar adaptadores concretos (ver
 - `EventBus`: implementa `EventSink` y reparte cada evento a todos los consumidores, cada uno con
   su propio canal acotado de `Arc<Event>` ([ADR-0007](../../docs/adr/0007-bus-de-eventos.md)).
 - `SubscriberStats`: nombre, capacidad, eventos en cola y descartados de cada consumidor.
+- Automatización de chat: una cola acotada y un consumidor secuencial aplican comandos configurados,
+  roles, filtros, deduplicación y límites antes de responder. El eco propio se correlaciona por autor,
+  id de envío y texto pendiente, sin registrar contenido de chat.
+- `ChatHandle::send_async` permite enviar desde tareas del runtime; `send` conserva el uso síncrono
+  desde fuera de él.
 - `AppPaths`: carpetas de configuración, datos y caché y las rutas de `settings.toml` y `syon.log`
   ([ADR-0009](../../docs/adr/0009-rutas-de-datos.md)). Es el único lugar que consulta el sistema operativo.
 

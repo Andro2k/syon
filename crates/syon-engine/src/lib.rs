@@ -5,6 +5,7 @@
 #![warn(missing_docs)]
 
 mod chat;
+mod commands;
 mod connectors;
 mod credentials;
 mod engine;

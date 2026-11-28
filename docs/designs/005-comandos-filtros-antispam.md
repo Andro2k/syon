@@ -115,7 +115,9 @@ por saturación. El bus ya permite asignar capacidad por suscriptor según ADR-0
 ## 6. Comandos
 
 Un comando es una entrada de configuración con nombre, alias opcionales, respuesta, estado habilitado,
-plataformas permitidas y rol mínimo requerido. Se propone un prefijo configurable, `!` por defecto;
+plataformas de origen permitidas, destinos de respuesta y rol mínimo requerido. Si `platforms` no está
+definido, cualquier plataforma puede activar el comando; si `destinations` no está definido, responde
+solo en la plataforma de origen. Se propone un prefijo configurable, `!` por defecto;
 solo un prefijo al inicio del texto activa el parser. El nombre no distingue mayúsculas de minúsculas;
 los argumentos conservan el texto restante y se separan por espacios Unicode, sin evaluación de
 expresiones ni plantillas ejecutables.
@@ -151,8 +153,8 @@ sancionan usuarios ni responden explicando el rechazo. El chat original permanec
 
 El antispam opera localmente por plataforma y cuenta, con límites configurables de ejecuciones por
 comando y un enfriamiento mínimo entre respuestas idénticas. Los valores iniciales son un intervalo de
-5 segundos por usuario y comando, 1 respuesta automatizada por segundo por plataforma y una ventana de
-10 segundos para mensajes duplicados; los
+5 segundos por usuario y comando, 5 segundos entre respuestas idénticas por plataforma, 1 respuesta
+automatizada por segundo por plataforma y una ventana de 10 segundos para mensajes duplicados; los
 límites de Twitch y Kick siguen aplicándose en el servidor y sus rechazos no se reintentan. Un rechazo
 por antispam es silencioso para no amplificar spam. Los contadores usan reloj monotónico, vencen solos
 y tienen tamaño máximo; reiniciar SYON los reinicia. No se limita el mensaje escrito manualmente por
@@ -164,7 +166,10 @@ La configuración pertenece a `syon-app` como modelo sin `serde`; `syon-storage-
 serialización. Mantener la dirección de dependencias: dominio → app → adaptadores, con `syon-engine`
 ensamblando el consumidor, el almacenamiento y los senders. Los adaptadores no dependen del motor.
 
-Los ajustes se guardan en una sección nueva de `settings.toml`, con versión de esquema existente. La
+Los ajustes se guardan en una sección nueva de `settings.toml`, con versión de esquema existente.
+`[chat]` ausente conserva los valores por defecto; cada comando usa `name`, `aliases`, `response`,
+`enabled`, `platforms`, `destinations` y `minimum_role`. Los filtros usan `ignored_users`,
+`required_phrases` y `blocked_phrases`; los límites se expresan en segundos. La
 carga valida prefijo, nombres, destinos, roles y límites; datos inválidos producen un diagnóstico en
 español y conservan el último estado válido. No se registran respuestas, contenido filtrado, nombres de
 usuario ni ids de mensajes en logs ordinarios. Los secretos no forman parte de esta configuración.
@@ -211,7 +216,7 @@ Un parche por paso, con `docs/estado.md` actualizado en el mismo parche.
    en ambos adaptadores.
 3. `feat(app)`: modelos de configuración de comandos, filtros y límites.
 4. `feat(storage)`: lectura, escritura y validación TOML con compatibilidad para archivos sin `[chat]`.
-5. `feat(engine)`: parser, políticas, deduplicación, antispam, cola acotada y envío asíncrono.
+5. `feat(engine)`: parser, políticas, deduplicación, antispam, correlación de ecos propios, cola acotada y envío asíncrono.
 6. `docs(walkthrough)`: walkthrough, paridad y estado al cerrar F3 parte 2.
 
 ## 12. Decisiones a aceptar
@@ -224,8 +229,8 @@ Un parche por paso, con `docs/estado.md` actualizado en el mismo parche.
    `{user}`, `{platform}` y `{args}`.
 4. Niveles `Everyone`, `Subscriber`, `Vip`, `Moderator`, `Broadcaster` con jerarquía acumulativa.
 5. Filtros de usuario, plataforma, texto y duplicados; sin acciones de moderación automáticas.
-6. Límites locales iniciales de 5 s por usuario/comando, 1 respuesta/s por plataforma y 10 s de
-   deduplicación, silenciosos y sin reintento.
+6. Límites locales iniciales de 5 s por usuario/comando, 5 s por respuesta idéntica, 1 respuesta/s
+   por plataforma y 10 s de deduplicación, silenciosos y sin reintento.
 7. Consumidor asíncrono con cola acotada, descartes contados y envío fuera del camino de publicación.
 8. Persistencia TOML en los ajustes existentes y sin nuevas dependencias directas.
 

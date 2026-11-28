@@ -18,6 +18,9 @@ modelo plano `Settings` (ver [ADR-0008](../../docs/adr/0008-configuracion-toml.m
   Los guardados del proceso se serializan: varios `save` a la vez, desde hilos o desde distintas
   instancias del adaptador, no fallan y gana el último en entrar.
 - Conserva `schema_version` y `[logging].level` en la ida y vuelta.
+- Conserva `[chat]` con prefijo, comandos, alias, plataformas de origen y destinos, rol mínimo,
+  exclusiones de usuario, frases y límites. La sección es opcional al leer archivos anteriores;
+  valores inválidos devuelven `SettingsError::Invalid` sin modificar el original.
 
 ## Qué no hace
 
@@ -36,4 +39,4 @@ modelo plano `Settings` (ver [ADR-0008](../../docs/adr/0008-configuracion-toml.m
 | `TomlSettingsStore::path()` | Ruta del archivo de ajustes |
 | `impl SettingsStore` | `load` y `save` según el contrato del puerto |
 
-Dependencias: `syon-app`, `toml` y `serde` (con `derive`).
+Dependencias: `syon-app`, `syon-domain`, `toml` y `serde` (con `derive`).

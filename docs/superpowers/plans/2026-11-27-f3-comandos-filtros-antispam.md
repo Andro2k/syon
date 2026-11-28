@@ -53,7 +53,7 @@
 
 **Files:** `crates/syon-app/src/settings.rs`, `crates/syon-app/src/lib.rs`.
 
-**Interface:** `ChatSettings`, `ChatCommand`, `ChatUserFilter`, `MinimumChatRole`, `ChatSettings::default()`; defaults use `!`, no configured commands, 5-second command cooldown, one send per second per platform and a 10-second duplicate window.
+**Interface:** `ChatSettings`, `ChatCommand`, `ChatUserFilter`, `MinimumChatRole`, `ChatSettings::default()`; defaults use `!`, no configured commands, 5-second per-user command and identical-response cooldowns, one send per second per platform and a 10-second duplicate window.
 
 - [x] Add tests for defaults and role-level definitions; exact authorization hierarchy is tested with engine policy.
 - [x] Run `cargo test -p syon-app`; initial tests established the missing model before implementation.
@@ -74,22 +74,22 @@
 
 **Files:** `crates/syon-engine/src/commands.rs` (new), `crates/syon-engine/src/lib.rs`, `crates/syon-engine/src/engine.rs` as needed.
 
-- [ ] Add pure tests for prefix parsing, Unicode whitespace arguments, alias matching, literal substitutions `{user}`, `{platform}`, `{args}`, platform allow-list, role levels, filters and cooldowns with a supplied `Instant`.
-- [ ] Run `cargo test -p syon-engine commands` and observe the expected missing-module failure.
-- [ ] Implement a single-message decision function with no I/O; ignore own/unknown messages before filters and parsing; unknown commands remain silent.
-- [ ] Bound/prune recent ids and content fingerprints; use 10-second duplicate window, 5-second per-user-command cooldown and 1-second platform send interval.
-- [ ] Run `cargo test -p syon-engine commands`.
+- [x] Add pure tests for prefix parsing, Unicode whitespace arguments, aliases, substitutions, source allow-list, roles, filters, duplicate window and limits with a supplied `Instant`.
+- [x] Run `cargo test -p syon-engine commands`; initial tests verified the missing module before implementation.
+- [x] Implement a single-message decision function with no I/O; reject own/unknown messages before filters and parsing; unknown commands remain silent.
+- [x] Bound/prune recent ids, content fingerprints and cooldowns; apply configured 10-second, 5-second and 1-second defaults.
+- [x] Run `cargo test -p syon-engine commands`.
 
 ### Task 6: Wire the bounded consumer and asynchronous sender
 
 **Files:** `crates/syon-engine/src/chat.rs`, `crates/syon-engine/src/engine.rs`, `crates/syon-engine/src/event_bus.rs` tests as needed.
 
-- [ ] Add a test proving `ChatHandle::send_async` works from a Tokio task.
-- [ ] Add tests proving own message ids and pre-registered exact outgoing text are consumed once, send errors remove pending text, unknown identity does not dispatch, responses target the source platform by default, and full consumer queues do not block publication.
-- [ ] Run focused tests and observe expected failures.
-- [ ] Register the automation subscriber before platform startup, spawn a sequential worker on the existing runtime and await `send_async` outside the publisher path.
-- [ ] Keep own-message correlation bounded, with expiry; cache successful returned message ids and register normalized outbound text before starting each send.
-- [ ] Run engine tests, then the full workspace.
+- [x] Add a test proving `ChatHandle::send_async` works from a Tokio task.
+- [x] Add tests for consumed own echoes, failed-send cleanup, unknown identity, source-platform default and bus saturation/nonblocking behavior.
+- [x] Run focused tests; initial tests established missing async send/correlation behavior.
+- [x] Register the automation subscriber before platform startup, spawn a sequential worker on the existing runtime and await `send_async` outside the publisher path.
+- [x] Bound own-message correlation with expiry; cache successful ids and register exact outbound text before sending.
+- [x] Run engine and focused storage tests; full workspace validation remains in Task 7.
 
 ### Task 7: Close F3 part 2
 

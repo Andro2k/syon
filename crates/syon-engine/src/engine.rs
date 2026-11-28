@@ -2,12 +2,13 @@ use crate::{
     AppCredentials, AppPaths, ChatHandle, EventBus, LoggingConfig, LoggingError, LoginError,
     LoginOutcome, PlatformCredentials, PlatformStart, PlatformStartError,
     chat::SenderRegistry,
+    commands::ChatAutomation,
     connectors::ConnectorRegistry,
     init_logging,
     platforms::kick_channel,
     settings_loading::{read_settings, recover},
 };
-use std::{error::Error, fmt, io, sync::Arc};
+use std::{error::Error, fmt, io, sync::Arc, time::Instant};
 use syon_app::{ChatSender, ConnectionStatus, PlatformConnector, Settings};
 use syon_domain::Platform;
 use syon_platform_kick as kick;
@@ -28,6 +29,7 @@ pub struct Engine {
     bus: EventBus,
     connectors: ConnectorRegistry,
     chat: SenderRegistry,
+    chat_worker: Option<tokio::task::JoinHandle<()>>,
     // Último campo: se destruye después de detener los conectores en `Drop`.
     runtime: Runtime,
 }
@@ -61,12 +63,53 @@ impl Engine {
             log::warn!("engine: {}", recover(problem, &settings_file));
         }
         log::info!("engine: listo; ajustes en {}", settings_file.display());
+        let bus = EventBus::new();
+        let chat = SenderRegistry::default();
+        let chat_worker = if loaded.settings.chat.commands.is_empty() {
+            None
+        } else {
+            let mut receiver = bus.subscribe("chat_automation", 256);
+            let settings = loaded.settings.chat.clone();
+            let handle = ChatHandle::new(chat.clone(), runtime.handle().clone());
+            Some(runtime.spawn(async move {
+                let mut automation = ChatAutomation::default();
+                while let Some(event) = receiver.recv().await {
+                    let now = Instant::now();
+                    let Some(response) = automation.process(&settings, &event, now) else {
+                        continue;
+                    };
+                    for platform in &response.platforms {
+                        automation.register_send(*platform, &response.text, Instant::now());
+                    }
+                    for result in handle.send_async(&response.platforms, &response.text).await {
+                        let id = result
+                            .outcome
+                            .as_ref()
+                            .ok()
+                            .and_then(|message| message.id.as_ref());
+                        automation.complete_send(
+                            result.platform,
+                            &response.text,
+                            id,
+                            result.outcome.is_ok(),
+                        );
+                        if result.outcome.is_err() {
+                            log::warn!(
+                                "engine: no se pudo enviar una respuesta automatizada a {:?}",
+                                result.platform
+                            );
+                        }
+                    }
+                }
+            }))
+        };
         Ok(Self {
             paths,
             settings: loaded.settings,
-            bus: EventBus::new(),
+            bus,
             connectors: ConnectorRegistry::default(),
-            chat: SenderRegistry::default(),
+            chat,
+            chat_worker,
             runtime,
         })
     }
@@ -314,6 +357,9 @@ impl Drop for Engine {
     /// Pide detenerse a los conectores antes de que el runtime se destruya.
     fn drop(&mut self) {
         self.connectors.stop_all();
+        if let Some(worker) = &self.chat_worker {
+            worker.abort();
+        }
     }
 }
 

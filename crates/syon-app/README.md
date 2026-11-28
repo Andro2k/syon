@@ -10,7 +10,9 @@ guardan los ajustes. Solo depende de [`syon-domain`](../syon-domain/README.md)
 
 - `EventSink`: puerto por el que las plataformas entregan eventos.
 - `SettingsStore` y `SettingsError`: puerto de lectura y escritura de ajustes.
-- `Settings`, `LoggingSettings` y `LogLevel`: modelo plano de los ajustes de F1.
+- `Settings`, `LoggingSettings`, `ChatSettings` y `ChatCommand`: modelo plano de ajustes de registro,
+  conexiones, comandos, filtros por usuario/texto, destinos y antispam (enfriamiento de comando,
+  respuesta idéntica y ritmo por plataforma). No serializa ni conoce TOML.
 
 ## Qué no hace
 
@@ -27,5 +29,5 @@ guardan los ajustes. Solo depende de [`syon-domain`](../syon-domain/README.md)
 | `EventSink` | `publish(&self, Event)`; no bloquea y se comparte entre hilos |
 | `SettingsStore` | `load` y `save` de los ajustes del usuario |
 | `SettingsError` | `Io` (acceso al archivo) o `Invalid` (contenido inválido), con la ruta |
-| `Settings` | Versión de esquema y secciones de ajustes; hoy solo `logging` |
+| `Settings` | Versión de esquema y secciones de ajustes, incluida la configuración inerte del chat |
 | `LoggingSettings` | Nivel del archivo de log (`LogLevel`, por defecto `Info`) |
