@@ -1,6 +1,6 @@
 # Diseño 005: comandos, filtros y antispam (segunda parte de F3)
 
-- Estado: Propuesta; redactado el 2026-11-27
+- Estado: Aceptado (2026-11-27); propuesto el 2026-11-27
 - Fase: F3
 - Fecha: 2026-11-27
 
@@ -63,18 +63,20 @@ visible. `author_id` conserva la identidad para diagnóstico y futuras funciones
 consultan `is_self` y `roles`. El consumidor excluye tanto `Some(true)` como `None`: un falso positivo
 de exclusión pierde una activación, mientras un falso negativo puede crear un bucle.
 
-Para Twitch, `channel.chat.message` entrega `chatter_user_id` y banderas de broadcaster, moderator,
-VIP y subscriber; las insignias están disponibles si en el futuro se requiere detalle adicional. El
-adaptador debe mapear esas banderas y comparar `chatter_user_id` con la cuenta conectada. La
+Para Twitch, `channel.chat.message` entrega `chatter_user_id`, `broadcaster_user_id` y `badges` con
+`set_id`; el adaptador usa esos ids y las insignias `moderator`, `vip` y `subscriber` para los roles.
+Compara `chatter_user_id` con el `user_id` validado de la sesión para marcar mensajes propios. La
 documentación oficial describe esos campos en [Channel Chat Message de EventSub](https://dev.twitch.tv/docs/eventsub/reference/chat/).
 
-Para Kick, se extraerán id y roles solo de campos observados en eventos reales o definidos por la
-documentación oficial. El esquema actual de `ChatMessageEvent` leído por el adaptador solo consume
-`sender.username` y `content`; por tanto, el formato exacto de id, roles y la identidad de la cuenta
-propia queda **por confirmar en vivo**. No se inventarán nombres de campos ni se derivarán permisos
-de moderación de insignias desconocidas. Mientras no haya datos suficientes, Kick conserva roles
-`false` y no habilita comandos que exijan esos roles; la detección propia usa el id si se confirma y,
-si no, el mecanismo de correlación descrito abajo.
+Kick documenta para su evento oficial de webhook `chat.message.sent` los campos
+`sender.user_id` y `sender.identity.badges[].type` (por ejemplo `moderator`, `vip` y `subscriber`),
+en [Webhook Payloads](https://github.com/KickEngineering/KickDevDocs/blob/main/events/event-types.md).
+El conector actual, sin embargo, lee el feed WebSocket de la página de Kick, no ese webhook; su
+payload puede diferir y sigue **por confirmar en vivo**. El traductor lee esos campos solo si están
+presentes y del tipo esperado, reconoce únicamente los tipos de badge conocidos y deja los demás en
+`false`. La identidad propia se compara con el id del canal configurado; si falta el id del autor o
+del canal queda desconocida y el mensaje no dispara automatización. No se habilitan roles por el
+nombre o texto visible de una insignia.
 
 ## 4. Exclusión de mensajes propios y prevención de bucles
 
@@ -83,13 +85,12 @@ se siguen publicando en el bus y se pueden mostrar en la consola o interfaz; sim
 otra respuesta automática. Así se conserva el eco confirmado por ambas plataformas sin que una
 respuesta `!hola` dispare `!hola` de nuevo.
 
-La fuente preferida es la comparación del id de autor con la identidad de la cuenta autenticada. Si el
-feed no entrega ese id, el adaptador mantiene una ventana acotada de ids de mensajes confirmados por
-`ChatSender`: registra el id devuelto al enviar y marca como propio el eco con ese mismo id. Como el eco
-puede llegar antes de la respuesta HTTP, el adaptador también puede correlacionar temporalmente por
-plataforma, canal, texto exacto y una ventana corta; una coincidencia no confirmada nunca autoriza una
-acción, solo excluye de automatización. La ventana tiene límite de tamaño y vencimiento para que un
-fallo de eco no acumule estado. No se registran textos de chat en logs.
+La fuente preferida es la comparación del id de autor con la identidad conocida de la sesión. Además,
+el engine mantiene una ventana acotada de ids de mensajes confirmados por `ChatSender`: registra el id
+devuelto al enviar y marca como propio el eco con ese mismo id. Antes de iniciar el envío registra
+temporalmente la plataforma y el texto exacto para cubrir el caso en que el eco llegue antes de la
+respuesta HTTP; una coincidencia solo excluye de automatización. Los registros previos se retiran si
+falla el envío y todos caducan para no acumular estado. No se registran textos de chat en logs.
 
 Si no hay identidad ni correlación fiable, `is_self` queda como `None` y el mensaje no se automatiza. Esta
 regla conservadora debe quedar contada como diagnóstico sin texto, para revelar que una plataforma no
@@ -119,7 +120,8 @@ solo un prefijo al inicio del texto activa el parser. El nombre no distingue may
 los argumentos conservan el texto restante y se separan por espacios Unicode, sin evaluación de
 expresiones ni plantillas ejecutables.
 
-El primer conjunto de acciones admite texto literal y variables acotadas (`{user}` y `{platform}`),
+El primer conjunto de acciones admite texto literal y variables acotadas (`{user}`, `{platform}` y
+`{args}`),
 con sustitución escapada como texto plano. No hay llamadas a shell, scripts, expresiones, encadenado de
 comandos ni una API de plugins en F3. Un nombre desconocido no responde. Una respuesta puede dirigirse
 a la plataforma de origen o a la lista configurada; el valor inicial es la plataforma de origen para
@@ -148,8 +150,9 @@ Una regla puede descartar un mensaje o impedir comandos. En F3 los filtros no bo
 sancionan usuarios ni responden explicando el rechazo. El chat original permanece visible en el bus.
 
 El antispam opera localmente por plataforma y cuenta, con límites configurables de ejecuciones por
-comando y un enfriamiento mínimo entre respuestas idénticas. Los valores iniciales propuestos son un
-intervalo de 5 segundos por usuario y comando, y 1 respuesta por segundo global por plataforma; los
+comando y un enfriamiento mínimo entre respuestas idénticas. Los valores iniciales son un intervalo de
+5 segundos por usuario y comando, 1 respuesta automatizada por segundo por plataforma y una ventana de
+10 segundos para mensajes duplicados; los
 límites de Twitch y Kick siguen aplicándose en el servidor y sus rechazos no se reintentan. Un rechazo
 por antispam es silencioso para no amplificar spam. Los contadores usan reloj monotónico, vencen solos
 y tienen tamaño máximo; reiniciar SYON los reinicia. No se limita el mensaje escrito manualmente por
@@ -201,20 +204,15 @@ motor de expresiones regulares.
 
 ## 11. Plan de parches propuesto
 
-Un parche por paso, con `docs/estado.md` actualizado en el mismo parche. El detalle de archivos y
-pruebas se ajustará al aceptar este diseño.
+Un parche por paso, con `docs/estado.md` actualizado en el mismo parche.
 
-1. `docs(design)`: este diseño y su entrada en el índice; actualizar la fila de F3 parte 2 a «Diseño
-   propuesto, pendiente de aceptación».
-2. `feat(domain)`: identidad, `ChatRoles` y `is_self` en `ChatMessage`, actualizaciones de adaptadores
-   y pruebas de traducción; confirmar primero los campos reales de Kick.
-3. `feat(app)`: modelos y puertos de comandos, reglas de filtro y antispam, sin dependencias de
-   implementación.
-4. `feat(storage)`: serialización TOML, validación, valores por defecto y pruebas de carga inválida.
-5. `feat(engine)`: consumidor acotado, parser/despacho, filtros, deduplicación, antispam y envío de
-   respuestas por `ChatHandle`, con pruebas aisladas.
-6. `feat(syon)`: diagnóstico de configuración y cableado del ciclo de vida; sin añadir controles de UI.
-7. `docs(walkthrough)`: walkthrough, tabla de paridad y estado al cerrar el paso.
+1. `docs(design)`: aceptación, reglas confirmadas y decisión de formato del `settings.toml`.
+2. `feat(domain)`: identidad, roles e indicador de autor propio en `ChatMessage`; traducción tolerante
+   en ambos adaptadores.
+3. `feat(app)`: modelos de configuración de comandos, filtros y límites.
+4. `feat(storage)`: lectura, escritura y validación TOML con compatibilidad para archivos sin `[chat]`.
+5. `feat(engine)`: parser, políticas, deduplicación, antispam, cola acotada y envío asíncrono.
+6. `docs(walkthrough)`: walkthrough, paridad y estado al cerrar F3 parte 2.
 
 ## 12. Decisiones a aceptar
 
@@ -222,14 +220,16 @@ pruebas se ajustará al aceptar este diseño.
    el adaptador; los mensajes inciertos se excluyen de automatización.
 2. La identidad propia se resuelve por id de plataforma cuando exista y por correlación temporal
    únicamente como exclusión de seguridad.
-3. Prefijo `!` configurable, alias, argumentos de texto y respuestas de texto literal con solo
-   `{user}` y `{platform}`.
+3. Prefijo `!` configurable, alias, argumentos de texto y respuestas de texto literal con
+   `{user}`, `{platform}` y `{args}`.
 4. Niveles `Everyone`, `Subscriber`, `Vip`, `Moderator`, `Broadcaster` con jerarquía acumulativa.
 5. Filtros de usuario, plataforma, texto y duplicados; sin acciones de moderación automáticas.
-6. Límites locales iniciales de 5 s por usuario/comando y 1 respuesta/s por plataforma, silenciosos y
-   sin reintento.
+6. Límites locales iniciales de 5 s por usuario/comando, 1 respuesta/s por plataforma y 10 s de
+   deduplicación, silenciosos y sin reintento.
 7. Consumidor asíncrono con cola acotada, descartes contados y envío fuera del camino de publicación.
 8. Persistencia TOML en los ajustes existentes y sin nuevas dependencias directas.
 
-La implementación no empieza hasta aceptar el diseño y confirmar los campos reales necesarios de
-Kick; este documento constituye el entregable de documentación de este frente.
+El diseño queda aceptado para implementar con lectura tolerante de los campos documentados de Kick.
+Como el feed WebSocket actual no es el webhook oficial, el mapeo de esos campos en el feed y los
+roles de moderación de Kick siguen pendientes de contraste en vivo; hasta entonces los valores que no
+se puedan leer quedan desconocidos o falsos y no autorizan comandos privilegiados.
