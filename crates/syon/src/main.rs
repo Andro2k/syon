@@ -1,5 +1,6 @@
 //! Binario de SYON. Es el único sitio que toca el entorno y la consola; la lógica está en el engine.
 
+mod chat_input;
 mod cli;
 mod commands;
 mod credentials;

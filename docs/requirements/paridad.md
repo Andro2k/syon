@@ -7,7 +7,7 @@ contra su código antes de cerrar F0. Estados: `Pendiente` · `En curso` · `Hec
 |-----------|-------------|-----------|--------|
 | Kick: chat y eventos por WebSocket, OAuth, API pública | Sí | F2 | En curso (eventos, OAuth y feed migrados a `syon-platform-kick` y conectados al engine y al binario `syon`; falta el contraste en vivo y la API pública, F3) |
 | Twitch: chat y eventos | Sí | F2 | En curso (OAuth, cliente de Helix, traducción de eventos y conector de EventSub en `syon-platform-twitch`, conectados al engine y al binario `syon`; falta el contraste en vivo y el envío de chat, F3) |
-| Chat unificado con 1, 2 o todas las plataformas | Sí | F3 | Pendiente |
+| Chat unificado con 1, 2 o todas las plataformas | Sí | F3 | En curso (envío implementado en puerto, adaptadores, engine y consola; falta filtro de la interfaz en F9 y contraste en vivo) |
 | Comandos (incluidos los de moderador) y filtros de spam | Sí | F3 | Pendiente |
 | TTS con varios motores (edge-tts, Piper y uno local) | Sí | F4 | Pendiente (motores por decidir) |
 | Recompensas, con miniaturas | Sí | F5 | Pendiente |

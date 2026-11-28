@@ -1,6 +1,6 @@
 //! Los comandos `run` y `login`. Devuelven el código de salida del proceso.
 
-use crate::{credentials, events};
+use crate::{chat_input, credentials, events};
 use std::{
     io::{self, Write},
     process::ExitCode,
@@ -91,6 +91,7 @@ pub fn run() -> ExitCode {
     if running == 0 {
         return failure();
     }
+    chat_input::spawn_reader(engine.chat_handle(), engine.chat_platforms());
 
     let waited = handle.block_on(tokio::signal::ctrl_c());
     if let Err(error) = &waited {
