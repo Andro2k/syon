@@ -146,12 +146,7 @@ Para pasar el trabajo a otra IA, pegar esto y completar la última línea. Lo qu
 en este archivo y no en el prompt, así que no hace falta actualizarlo a mano:
 
 ```text
-Continúa el proyecto SYON (https://github.com/Andro2k/syon). Haz git clone (o git pull --ff-only si ya
-existe) y lee, en este orden: AGENTS.md, docs/estado.md completo (incluidos «Frentes de trabajo» y «Cómo
-retomar el trabajo») y el diseño de tu frente en docs/designs/, con su «Plan de parches». Revisa con git log
-qué parches están aplicados: el autor los aplica con otro hash, así que parte siempre de origin/master.
+Continúa el proyecto SYON (https://github.com/Andro2k/syon). Haz git clone (o git pull --ff-only si ya existe) y lee, en este orden: AGENTS.md, docs/estado.md completo (incluidos «Frentes de trabajo» y «Cómo retomar el trabajo») y el diseño de tu frente en docs/designs/, con su «Plan de parches». Revisa con git log qué parches están aplicados: el autor los aplica con otro hash, así que parte siempre de origin/master.
 Antes de empezar, anota tu frente en la tabla de docs/estado.md y no toques los archivos de otros frentes.
-Entrega parches atómicos de git format-patch, validados con ./validar.sh y repetidos sobre un clon limpio,
-con la autoría y la coautoría de AGENTS.md. Actualiza docs/estado.md al terminar cada paso. Si el
-repositorio contradice este mensaje, manda el repositorio. Tarea concreta: <frente o paso>.
+Entrega parches atómicos de git format-patch, validados con ./validar.sh y repetidos sobre un clon limpio,  con la autoría y la coautoría de AGENTS.md. Actualiza docs/estado.md al terminar cada paso. Si el repositorio contradice este mensaje, manda el repositorio. Tarea concreta: <frente o paso>.
 ```
