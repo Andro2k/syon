@@ -58,7 +58,7 @@ parche aplicado. La columna «Responsable» la rellena quien coordina; vacía si
 | Frente | Estado | Crates y archivos que toca | Responsable |
 |--------|--------|----------------------------|-------------|
 | Chat unificado y envío ([diseño 004](designs/004-chat-unificado-y-envio.md)) | Implementado (5 parches de código); falta contraste en vivo de envío | `syon-app`, `syon-platform-twitch`, `syon-platform-kick`, `syon-engine`, `syon` | Gemini |
-| Comandos, filtros y antispam (F3, parte 2) | Sin empezar; su diseño se puede escribir ya, solo en `docs/designs/`. Depende de dos decisiones del 004: los roles en `ChatMessage` y no reaccionar a los mensajes propios | Solo documentación hasta que se acepte | |
+| Comandos, filtros y antispam (F3, parte 2) | Diseño 005 propuesto, pendiente de aceptación | Solo `docs/designs/` y mi fila de este archivo | Codex |
 | Contraste en vivo de Kick y Twitch (F2) | Pendiente: `syon login` de ambas, eventos reales y la línea de coste de EventSub | Nada de código; con la aplicación real | Autor |
 | Job de Windows de la CI con `syon` y los crates de plataformas | Pendiente de confirmar | Nada | Autor |
 | TTS (F4) | Sin empezar; su ADR de motor y su diseño son independientes de F3 | Solo documentación hasta que se acepte | |
