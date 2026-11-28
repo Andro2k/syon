@@ -43,6 +43,10 @@ el trabajo sin depender de una conversación.
   cierra F2 por el lado de SYON con `docs/architecture/suscripciones.md`, la tabla de paridad y el
   [walkthrough WT-0.3.0_01](walkthroughs/WT-0.3.0_01.md).
 
+- F3 empieza con el [diseño 004](designs/004-chat-unificado-y-envio.md), propuesto el 2026-11-27: chat
+  unificado y envío de mensajes a Kick y Twitch. Los comandos, filtros y antispam van en otro diseño.
+  Sin código todavía; sus decisiones (sección 12) están por aceptar.
+
 ## Pendiente de decidir o verificar
 
 - Contraste en vivo con la aplicación real, a cargo del autor: `syon login kick`, `syon login twitch`,
