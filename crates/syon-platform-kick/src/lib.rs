@@ -5,6 +5,7 @@
 
 #![warn(missing_docs)]
 
+mod api;
 mod callback;
 mod clock;
 mod config;
@@ -14,14 +15,17 @@ mod events;
 mod frames;
 mod oauth_client;
 mod pkce;
+mod sender;
 mod session;
 #[cfg(test)]
 mod test_support;
 mod token;
 
+pub use api::{KickApi, SentChat};
 pub use config::{DEFAULT_REDIRECT_URI, DEFAULT_SCOPES, KickAppConfig};
 pub use connector::{KickChannel, KickConnector};
-pub use error::{ConnectError, OAuthError};
+pub use error::{ApiError, ConnectError, OAuthError};
 pub use events::event_from_publication;
 pub use oauth_client::OAuthClient;
+pub use sender::KickChatSender;
 pub use session::{Source, TokenManager};

@@ -71,6 +71,45 @@ impl TokenManager {
         ))
     }
 
+    /// Recupera una sesión guardada sin abrir nunca el navegador:
+    ///
+    /// - Si no hay credenciales guardadas con los permisos pedidos, devuelve `Ok(None)`.
+    /// - Si están por vencer, intenta renovarlas; si la renovación falla, devuelve `Ok(None)` y lo
+    ///   registra como aviso.
+    pub async fn try_restore(
+        oauth: OAuthClient,
+        store: Arc<dyn CredentialStore>,
+    ) -> Result<Option<(Self, Source)>, OAuthError> {
+        let Some(credentials) = store
+            .load(Platform::Kick)?
+            .filter(|credentials| covers(credentials, oauth.scopes()))
+        else {
+            return Ok(None);
+        };
+        let (credentials, source) = if !needs_refresh(&credentials, now()) {
+            (credentials, Source::Restored)
+        } else {
+            match oauth.refresh(&credentials).await {
+                Ok(renewed) => {
+                    store.save(Platform::Kick, &renewed)?;
+                    (renewed, Source::Refreshed)
+                }
+                Err(error) => {
+                    log::warn!("kick: no se pudo renovar la sesión guardada ({error})");
+                    return Ok(None);
+                }
+            }
+        };
+        Ok(Some((
+            Self {
+                oauth,
+                store,
+                credentials: Mutex::new(credentials),
+            },
+            source,
+        )))
+    }
+
     /// Token de acceso vigente; lo renueva (y lo guarda) si está por vencer.
     pub async fn access_token(&self) -> Result<String, OAuthError> {
         let mut credentials = self.credentials.lock().await;
