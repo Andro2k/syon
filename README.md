@@ -18,6 +18,10 @@ cargo xtask docs-check
 cargo xtask arch-check
 ```
 
+`./validar.sh` las ejecuta juntas y resume cada una; las ligeras van en segundo plano. Necesita `bash`, y
+`cargo-deny` y `cargo-machete` se omiten, con aviso, si no están instalados. No sustituye a la CI: no ejecuta
+el formato, clippy ni las pruebas del prototipo `kick-console`.
+
 La auditoría de dependencias se describe en [docs/deps.md](docs/deps.md). Las reglas de
 arquitectura, estilo y entrega están en [AGENTS.md](AGENTS.md).
 

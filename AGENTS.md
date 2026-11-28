@@ -116,7 +116,7 @@ cargo xtask docs-check
 cargo xtask arch-check
 ```
 
-Para dependencias: `cargo deny --manifest-path Cargo.toml check`, el mismo comando sobre
+`./validar.sh` ejecuta estas comprobaciones juntas (ver el README). Para dependencias: `cargo deny --manifest-path Cargo.toml check`, el mismo comando sobre
 `prototypes/kick-console/Cargo.toml` y `cargo machete .` (ver [docs/deps.md](docs/deps.md)). La CI ejecuta lo mismo en
 Ubuntu y Windows.
 
