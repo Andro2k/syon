@@ -17,7 +17,8 @@ falsos.
   defaults inertes, validación explícita y compatibilidad de archivos sin esa sección.
 - `syon-engine`: parser literal con alias y argumentos, autorización acumulativa, filtros, ventanas
   de duplicados y enfriamiento, correlación acotada de ecos y worker secuencial en una suscripción
-  acotada. `ChatHandle::send_async` mantiene el envío fuera del camino de publicación.
+  acotada. `ChatHandle::send_async` mantiene el envío fuera del camino de publicación. El engine
+  cuenta autores/autorías desconocidos y registra solo un diagnóstico agregado cada 100 omisiones.
 
 ## Parches
 
@@ -39,6 +40,7 @@ para que la serie completa aplique desde `origin/master` en un clon limpio.
 11. `0011-feat-storage-persistir-ajustes-de-comandos-y-filtros.patch`: TOML compatible y validado.
 12. `0012-feat-engine-ejecutar-comandos-y-filtrar-ecos-de-chat.patch`: políticas, worker y envío asíncrono.
 13. `0013-docs-walkthrough-cerrar-comandos-filtros-y-antispam.patch`: este walkthrough, paridad y estado.
+14. `0014-feat-engine-contar-chat-con-autoria-desconocida.patch`: contador agregado sin contenido de chat.
 
 ## Archivos afectados
 
@@ -56,7 +58,7 @@ para que la serie completa aplique desde `origin/master` en un clon limpio.
 - Reaplicación con `git am` y repetición de estas comprobaciones en un clon limpio.
 
 Las cinco comprobaciones terminaron con código 0 en la rama de trabajo y en el clon limpio. El clon
-partió de `217ee533f629fddbfb13598e7af267c6bf6c4bfe`, recibió los 13 parches con `git am` y usó un
+partió de `217ee533f629fddbfb13598e7af267c6bf6c4bfe`, recibió los 14 parches con `git am` y usó un
 `CARGO_TARGET_DIR` independiente.
 
 `./validar.sh` no se pudo invocar en este host Windows porque el ejecutable `bash.exe` está denegado;

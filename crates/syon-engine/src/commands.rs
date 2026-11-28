@@ -23,6 +23,7 @@ pub(crate) struct ChatAutomation {
     response_cooldowns: VecDeque<(Platform, String, Instant)>,
     last_send: [Option<Instant>; 2],
     echoes: VecDeque<(Platform, String, Option<String>, Instant)>,
+    unknown_identity_skips: u64,
 }
 
 impl ChatAutomation {
@@ -40,6 +41,15 @@ impl ChatAutomation {
             return None;
         }
         if message.is_self != Some(false) || message.author_id.is_none() {
+            if message.is_self.is_none() || message.author_id.is_none() {
+                self.unknown_identity_skips = self.unknown_identity_skips.saturating_add(1);
+                if self.unknown_identity_skips.is_multiple_of(100) {
+                    log::debug!(
+                        "engine: {} mensajes sin identidad/autoria verificable se excluyeron de automatización",
+                        self.unknown_identity_skips
+                    );
+                }
+            }
             return None;
         }
         self.prune(now, settings);
@@ -394,6 +404,7 @@ mod tests {
         let now = Instant::now();
         assert!(automation.process(&settings, &own, now).is_none());
         assert!(automation.process(&settings, &unknown, now).is_none());
+        assert_eq!(automation.unknown_identity_skips, 1);
     }
 
     #[test]
