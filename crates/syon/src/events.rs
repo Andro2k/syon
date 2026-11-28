@@ -4,9 +4,14 @@
 use syon_domain::{Event, EventKind, Platform, Timestamp};
 
 /// Caracteres que no se imprimen: los de control (incluida la secuencia de escape de terminal) y
-/// los de formato bidireccional, que sirven para falsear lo que se ve en pantalla.
+/// los de formato bidireccional (incluidas las marcas LRM, RLM y ALM), que sirven para falsear lo que
+/// se ve en pantalla.
 fn is_unsafe(c: char) -> bool {
-    c.is_control() || matches!(c, '\u{202A}'..='\u{202E}' | '\u{2066}'..='\u{2069}')
+    c.is_control()
+        || matches!(
+            c,
+            '\u{202A}'..='\u{202E}' | '\u{2066}'..='\u{2069}' | '\u{200E}' | '\u{200F}' | '\u{061C}'
+        )
 }
 
 /// Quita los caracteres inseguros. El texto de los eventos lo escribe cualquiera.
@@ -128,6 +133,12 @@ mod tests {
     fn tampoco_lleva_formato_bidireccional() {
         let line = format_event(&event(chat("a\u{202E}b\u{2066}c")));
         assert_eq!(line, "03:04:05 kick ana: abc");
+    }
+
+    #[test]
+    fn tampoco_lleva_las_marcas_de_direccion_lrm_rlm_y_alm() {
+        let line = format_event(&event(chat("a\u{200E}b\u{200F}c\u{061C}d")));
+        assert_eq!(line, "03:04:05 kick ana: abcd");
     }
 
     #[test]
