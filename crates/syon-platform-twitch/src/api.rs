@@ -49,6 +49,17 @@ pub struct CreatedSubscription {
     pub max_total_cost: Option<u64>,
 }
 
+/// Respuesta de Twitch al enviar un mensaje al chat (`POST /helix/chat/messages`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SentChat {
+    /// Identificador del mensaje asignado por Twitch, si lo devuelve.
+    pub message_id: Option<String>,
+    /// Si Twitch aceptó el mensaje en el chat; cuando es `false`, `drop_reason` explica el motivo.
+    pub is_sent: bool,
+    /// Motivo del descarte cuando `is_sent` es `false`.
+    pub drop_reason: Option<String>,
+}
+
 /// Una suscripción de la lista que devuelve Twitch.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ListedSubscription {
@@ -209,6 +220,58 @@ impl TwitchApi {
             total_cost: response["total_cost"].as_u64(),
             max_total_cost: response["max_total_cost"].as_u64(),
             next_cursor: response["pagination"]["cursor"].as_str().map(str::to_owned),
+        })
+    }
+
+    /// Envía un mensaje al chat de `broadcaster_id` en nombre de `sender_id`.
+    pub async fn send_chat_message(
+        &self,
+        token: &str,
+        broadcaster_id: &str,
+        sender_id: &str,
+        message: &str,
+    ) -> Result<SentChat, ApiError> {
+        let request = self
+            .helix(
+                token,
+                self.http.post(format!("{}/chat/messages", self.helix_url)),
+            )
+            .json(&json!({
+                "broadcaster_id": broadcaster_id,
+                "sender_id": sender_id,
+                "message": message,
+            }));
+        let response = read_json(request).await?;
+        let entry = response["data"]
+            .as_array()
+            .and_then(|list| list.first())
+            .ok_or_else(|| {
+                ApiError::Unreadable("falta data[0] en la respuesta de chat de Twitch".into())
+            })?;
+        let is_sent = entry["is_sent"].as_bool().ok_or_else(|| {
+            ApiError::Unreadable("falta is_sent en la respuesta de chat de Twitch".into())
+        })?;
+        let message_id = entry["message_id"]
+            .as_str()
+            .filter(|id| !id.is_empty())
+            .map(str::to_owned);
+        let drop_reason = if entry["drop_reason"].is_object() {
+            entry["drop_reason"]["message"]
+                .as_str()
+                .filter(|s| !s.is_empty())
+                .or_else(|| {
+                    entry["drop_reason"]["code"]
+                        .as_str()
+                        .filter(|s| !s.is_empty())
+                })
+                .map(str::to_owned)
+        } else {
+            None
+        };
+        Ok(SentChat {
+            message_id,
+            is_sent,
+            drop_reason,
         })
     }
 
