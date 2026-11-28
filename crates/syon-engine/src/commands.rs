@@ -80,19 +80,26 @@ impl ChatAutomation {
         }) {
             return None;
         }
-        let mut text = command
-            .response
-            .replace("{user}", &message.author.name)
-            .replace(
-                "{platform}",
-                match event.platform {
-                    Platform::Kick => "kick",
-                    Platform::Twitch => "twitch",
-                },
-            )
-            .replace("{args}", args);
-        text = text.trim().to_owned();
+        let platform_name = match event.platform {
+            Platform::Kick => "kick",
+            Platform::Twitch => "twitch",
+        };
+        let text = expand(
+            &command.response,
+            &plain(&message.author.name),
+            platform_name,
+            &plain(args),
+        );
         if text.is_empty() {
+            return None;
+        }
+        // Lo que escribe el espectador no puede abrir la respuesta con otro comando: ni con el
+        // prefijo propio (otro bot lo ejecutaría) ni con `/` o `.` (comandos de plataforma).
+        let opens_command = |value: &str| {
+            value.starts_with(['/', '.']) || value.starts_with(settings.prefix.as_str())
+        };
+        if opens_command(&text) && !opens_command(command.response.trim_start()) {
+            log::debug!("engine: respuesta descartada: el texto del usuario abría con un comando");
             return None;
         }
         let response_key = text.to_lowercase();
@@ -255,6 +262,40 @@ impl ChatAutomation {
             self.response_cooldowns.pop_front();
         }
     }
+}
+
+/// Sustituye `{user}`, `{platform}` y `{args}` en una sola pasada: el valor de una variable nunca se
+/// vuelve a interpretar como otra variable.
+fn expand(template: &str, user: &str, platform: &str, args: &str) -> String {
+    let mut out = String::with_capacity(template.len());
+    let mut rest = template;
+    while let Some(open) = rest.find('{') {
+        out.push_str(&rest[..open]);
+        let tail = &rest[open..];
+        let (value, len) = if tail.starts_with("{user}") {
+            (user, 6)
+        } else if tail.starts_with("{platform}") {
+            (platform, 10)
+        } else if tail.starts_with("{args}") {
+            (args, 6)
+        } else {
+            ("{", 1)
+        };
+        out.push_str(value);
+        rest = &tail[len..];
+    }
+    out.push_str(rest);
+    out.trim().to_owned()
+}
+
+/// Texto de un espectador como texto plano de una sola línea: los caracteres de control (saltos de
+/// línea incluidos) pasan a espacios y los espacios repetidos se juntan.
+fn plain(value: &str) -> String {
+    value
+        .split(|c: char| c.is_control() || c.is_whitespace())
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn names(command: &ChatCommand) -> impl Iterator<Item = &str> {
@@ -644,5 +685,47 @@ mod tests {
         }
         assert!(automation.process(&settings, &echo, now).is_none());
         assert!(automation.echoes.is_empty());
+    }
+
+    #[test]
+    fn una_variable_no_se_reinterpreta_y_el_texto_del_usuario_queda_en_una_linea() {
+        assert_eq!(
+            expand("Hola {user}: {args}", "{args}", "twitch", "uno\ndos"),
+            "Hola {args}: uno\ndos"
+        );
+        assert_eq!(plain("uno\r\n  dos\u{7}tres"), "uno dos tres");
+        assert_eq!(expand("{x} {", "a", "b", "c"), "{x} {");
+    }
+
+    #[test]
+    fn el_texto_del_usuario_no_puede_abrir_la_respuesta_con_un_comando() {
+        let mut settings = ChatSettings::default();
+        let mut open = command(MinimumChatRole::Everyone);
+        open.response = "{args}".into();
+        settings.commands.push(open);
+        let now = Instant::now();
+        for (id, text) in [
+            ("1", "!saluda /ban alguien"),
+            ("2", "!saluda .timeout alguien"),
+            ("3", "!saluda !otro"),
+        ] {
+            let mut automation = ChatAutomation::default();
+            let input = event(text, id, ChatRoles::default());
+            assert!(
+                automation.process(&settings, &input, now).is_none(),
+                "{text}"
+            );
+        }
+        let mut automation = ChatAutomation::default();
+        let normal = event("!saluda hola /ban", "4", ChatRoles::default());
+        let response = automation.process(&settings, &normal, now).unwrap();
+        assert_eq!(response.text, "hola /ban");
+        let mut literal = command(MinimumChatRole::Everyone);
+        literal.response = "/me saluda a {user}".into();
+        let mut settings = ChatSettings::default();
+        settings.commands.push(literal);
+        let mut automation = ChatAutomation::default();
+        let input = event("!saluda", "5", ChatRoles::default());
+        assert!(automation.process(&settings, &input, now).is_some());
     }
 }

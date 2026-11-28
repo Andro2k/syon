@@ -124,7 +124,9 @@ expresiones ni plantillas ejecutables.
 
 El primer conjunto de acciones admite texto literal y variables acotadas (`{user}`, `{platform}` y
 `{args}`),
-con sustitución escapada como texto plano. No hay llamadas a shell, scripts, expresiones, encadenado de
+con sustitución en una sola pasada (el valor de una variable no se reinterpreta) y el texto del
+espectador como texto plano de una línea, sin caracteres de control. Si ese texto abriría la respuesta con el
+prefijo de comandos, `/` o `.` y la plantilla no empieza así, la respuesta se descarta. No hay llamadas a shell, scripts, expresiones, encadenado de
 comandos ni una API de plugins en F3. Un nombre desconocido no responde. Una respuesta puede dirigirse
 a la plataforma de origen o a la lista configurada; el valor inicial es la plataforma de origen para
 no duplicar respuestas ni alcanzar canales no previstos.
