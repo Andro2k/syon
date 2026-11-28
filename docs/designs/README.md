@@ -13,4 +13,4 @@ Estados: `Propuesta` · `Aceptado` · `Implementado` · `Descartado`.
 | [002](002-plataformas-kick-twitch.md) | Plataformas: Kick y Twitch | F2 | Aceptado |
 | [003](003-arranque-de-plataformas-y-binario.md) | Arranque de plataformas y binario | F2 | Aceptado |
 | [004](004-chat-unificado-y-envio.md) | Chat unificado y envío de mensajes | F3 | Aceptado |
-| [005](005-comandos-filtros-antispam.md) | Comandos, filtros y antispam | F3 | Aceptado |
+| [005](005-comandos-filtros-antispam.md) | Comandos, filtros y antispam | F3 | Implementado |

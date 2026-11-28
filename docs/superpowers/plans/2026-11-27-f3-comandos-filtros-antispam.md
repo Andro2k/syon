@@ -95,6 +95,6 @@
 
 **Files:** `docs/designs/005-comandos-filtros-antispam.md`, `docs/designs/README.md`, `docs/estado.md` (F3 part 2 row only), `docs/requirements/paridad.md`, `docs/walkthroughs/WT-0.4.0_01.md`.
 
-- [ ] Record implemented behavior and remaining live-confirmation risk for Kick; update parity and the walkthrough with actual patch names/files and validation output.
-- [ ] Run `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked`, `cargo xtask docs-check` and `cargo xtask arch-check`.
-- [ ] Export the atomic commits as consecutively numbered format-patches, apply them with `git am` to a fresh clone of current `origin/master`, and repeat validation with a separate target directory.
+- [x] Record implemented behavior and remaining live-confirmation risk for Kick; update parity and the walkthrough with actual patch names/files and validation output.
+- [x] Run `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked`, `cargo xtask docs-check` and `cargo xtask arch-check`.
+- [x] Export the atomic commits as consecutively numbered format-patches, apply them with `git am` to a fresh clone of current `origin/master`, and repeat validation with a separate target directory.
