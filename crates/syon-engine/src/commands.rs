@@ -175,8 +175,14 @@ impl ChatAutomation {
 
     fn consume_echo(&mut self, platform: Platform, message: &ChatMessage, now: Instant) -> bool {
         self.echoes.retain(|(_, _, _, expires)| *expires > now);
+        // Con el id ya conocido solo vale el id; el texto solo sirve mientras el id está pendiente y
+        // no se sabe que el mensaje es ajeno, para no tragarse la copia de otra persona.
         let index = self.echoes.iter().position(|(p, text, id, _)| {
-            *p == platform && (id.as_deref() == Some(message.id.as_str()) || text == &message.text)
+            *p == platform
+                && match id {
+                    Some(known) => known == message.id.as_str(),
+                    None => message.is_self != Some(false) && text == &message.text,
+                }
         });
         if let Some(index) = index {
             self.echoes.remove(index);
@@ -604,5 +610,39 @@ mod tests {
                 .process(&settings, &second, now + Duration::from_secs(2))
                 .is_none()
         );
+    }
+
+    #[test]
+    fn un_mensaje_ajeno_con_el_mismo_texto_no_consume_el_eco_pendiente() {
+        let now = Instant::now();
+        let settings = ChatSettings::default();
+        let mut automation = ChatAutomation::default();
+        automation.register_send(Platform::Twitch, "respuesta", now);
+        let copy = event("respuesta", "otra-persona", ChatRoles::default());
+        assert!(automation.process(&settings, &copy, now).is_none());
+        assert_eq!(automation.echoes.len(), 1);
+    }
+
+    #[test]
+    fn con_el_id_conocido_el_eco_se_reconoce_solo_por_id() {
+        let now = Instant::now();
+        let settings = ChatSettings::default();
+        let mut automation = ChatAutomation::default();
+        automation.register_send(Platform::Twitch, "respuesta", now);
+        automation.complete_send(
+            Platform::Twitch,
+            "respuesta",
+            Some(&MessageId::new("mio-1")),
+            true,
+        );
+        let copy = event("respuesta", "otra-persona", ChatRoles::default());
+        assert!(automation.process(&settings, &copy, now).is_none());
+        assert_eq!(automation.echoes.len(), 1);
+        let mut echo = event("distinto", "mio-1", ChatRoles::default());
+        if let EventKind::Chat(message) = &mut echo.kind {
+            message.is_self = None;
+        }
+        assert!(automation.process(&settings, &echo, now).is_none());
+        assert!(automation.echoes.is_empty());
     }
 }
