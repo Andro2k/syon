@@ -19,7 +19,7 @@ sesión OAuth. Migra `events.rs`, `oauth.rs` y `realtime.rs` del prototipo (`pro
   un contenido que no es JSON llega como `EventKind::Unknown { name }`, sin su contenido original.
 - El chat conserva el id del mensaje, que el prototipo descartaba. Si el feed no trae el id se fabrica
   uno (`autor@milisegundos`) para no perder el mensaje, y un borrado posterior no lo encontrará.
-- Si la publicación incluye `sender.user_id` e `identity.badges[].type`, conserva el id de autor y
+- Si la publicación incluye `sender.user_id` (o `sender.id`, que el feed probablemente manda: por confirmar en vivo) e `identity.badges[].type`, conserva el id de autor y
   reconoce `broadcaster`, `moderator`, `vip` y `subscriber`. El WebSocket actual no tiene contrato
   oficial; los campos ausentes quedan desconocidos o falsos y no autorizan comandos privilegiados.
 

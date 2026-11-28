@@ -93,7 +93,8 @@ fn chat(d: &Value, received_at: Timestamp, self_user_id: Option<u64>) -> Option<
     let id = text(d, &["id"])
         .or_else(|| text(d, &["message_id"]))
         .unwrap_or_else(|| format!("{author}@{}", received_at.as_unix_ms()));
-    let author_id = text(d, &["sender", "user_id"]);
+    // La API pública documenta `sender.user_id`; se sospecha que el feed en tiempo real manda `sender.id`.
+    let author_id = text(d, &["sender", "user_id"]).or_else(|| text(d, &["sender", "id"]));
     let badges = d["sender"]["identity"]["badges"].as_array();
     let has =
         |role: &str| badges.is_some_and(|badges| badges.iter().any(|badge| badge["type"] == role));
@@ -239,6 +240,26 @@ mod tests {
             ),
             Some(expected)
         );
+    }
+
+    #[test]
+    fn chat_del_feed_con_sender_id_conoce_al_autor() {
+        let body = json!({
+            "id": "m-2",
+            "content": "!ping hola",
+            "sender": { "id": 77, "username": "ana", "identity": { "badges": [] } }
+        });
+        let Some(EventKind::Chat(message)) = event_from_publication_with_user_id(
+            &publication("ChatMessageEvent", body),
+            AT,
+            Some(42),
+        ) else {
+            panic!("debía ser un chat");
+        };
+
+        assert_eq!(message.author_id.as_deref(), Some("77"));
+        assert_eq!(message.is_self, Some(false));
+        assert_eq!(message.roles, ChatRoles::default());
     }
 
     #[test]

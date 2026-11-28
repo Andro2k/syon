@@ -72,7 +72,9 @@ Kick documenta para su evento oficial de webhook `chat.message.sent` los campos
 `sender.user_id` y `sender.identity.badges[].type` (por ejemplo `moderator`, `vip` y `subscriber`),
 en [Webhook Payloads](https://github.com/KickEngineering/KickDevDocs/blob/main/events/event-types.md).
 El conector actual, sin embargo, lee el feed WebSocket de la página de Kick, no ese webhook; su
-payload puede diferir y sigue **por confirmar en vivo**. El traductor lee esos campos solo si están
+payload puede diferir y sigue **por confirmar en vivo**. En el contraste del 2026-11-28 los comandos
+de Kick no respondían, lo que cuadra con que el feed no traiga `sender.user_id`; el traductor ahora lee también
+`sender.id` y falta confirmar en vivo que con eso responden. El traductor lee esos campos solo si están
 presentes y del tipo esperado, reconoce únicamente los tipos de badge conocidos y deja los demás en
 `false`. La identidad propia se compara con el id del canal configurado; si falta el id del autor o
 del canal queda desconocida y el mensaje no dispara automatización. No se habilitan roles por el
