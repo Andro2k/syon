@@ -36,7 +36,10 @@ que quien instala SYON no tenga que registrar nada. El detalle:
 3. **Precedencia al arrancar:** la variable de entorno en ejecución (mismo nombre) pasa por delante del valor
    incrustado, para que quien desarrolla use su propia aplicación de prueba. Si no hay ninguno, esa
    plataforma no puede iniciar sesión y se explica con un mensaje que nombra las variables, no su valor. Un
-   valor vacío o en blanco cuenta como ausente.
+   valor vacío o en blanco cuenta como ausente. La precedencia se decide por pareja (`client_id` y
+   `client_secret`) y no por variable, para no mezclar el id de una aplicación con el secreto de otra: si en
+   el entorno solo está una de las dos es un error que nombra la que falta, y no se cae en silencio al valor
+   incrustado.
 4. **El engine y los adaptadores no leen el entorno.** Reciben las credenciales por constructor, como ya
    hace `KickAppConfig::new(client_id, client_secret)`. El engine define su propio tipo `AppCredentials`
    (con `Debug` a mano que no imprime el secreto), para que el binario no dependa de los adaptadores.

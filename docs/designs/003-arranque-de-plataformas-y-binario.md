@@ -170,7 +170,7 @@ Ningún crate nuevo. El binario añade a `tokio` la función `signal`, que el wo
   ninguna variable definida.
 - Ningún valor de credencial aparece en un `Debug`, en un mensaje de error ni en el registro.
 - El texto de chat con secuencias de escape sale sin ellas.
-- `arch-check` en verde: el binario solo depende del engine.
+- `arch-check` en verde: el binario solo depende del engine y del dominio.
 - Contraste en vivo, pendiente del autor: `syon login kick` con la aplicación real.
 
 ## 10. Riesgos y pendientes
@@ -194,7 +194,8 @@ Se propusieron así y el autor las aceptó el 2026-11-27, con los siete parches 
 1. **Credenciales de la aplicación incrustadas** e inyectadas al compilar: decidido por el autor
    (2026-11-26), con el detalle del ADR-0018.
 2. **Tres comandos sin `clap`.**
-3. **Kick arranca sin OAuth**; `login` es un comando aparte, no parte del arranque.
+3. **Kick arranca sin OAuth**; `login` es un comando aparte. Twitch sí necesita una sesión para conectar: si
+   no hay una válida, `run` inicia sesión de forma interactiva, y `login` sirve para dejarla lista antes.
 4. **`AppCredentials` y `login` viven en el engine**, para que el binario no dependa de los adaptadores.
 5. **`credentials.toml` en la carpeta de datos**, no en la de configuración.
 6. **`[twitch]` solo tiene `enabled`**: el canal es el del usuario autenticado. Se añade al cablear su
