@@ -58,7 +58,7 @@ parche aplicado. La columna «Responsable» la rellena quien coordina; vacía si
 | Frente | Estado | Crates y archivos que toca | Responsable |
 |--------|--------|----------------------------|-------------|
 | Chat unificado y envío ([diseño 004](designs/004-chat-unificado-y-envio.md)) | Implementado (5 parches de código); falta contraste en vivo de envío | `syon-app`, `syon-platform-twitch`, `syon-platform-kick`, `syon-engine`, `syon` | Gemini |
-| Comandos, filtros y antispam (F3, parte 2) | Implementado en 5 parches de código; falta confirmar en vivo la forma de los campos opcionales del feed de Kick | `syon-domain`, `syon-app`, `syon-platform-kick`, `syon-platform-twitch`, `syon-storage-toml`, `syon-engine` | Codex |
+| Comandos, filtros y antispam (F3, parte 2) | Implementado en 5 parches de código; límites corregidos para aplicarse por destino; falta confirmar en vivo la forma de los campos opcionales del feed de Kick | `syon-domain`, `syon-app`, `syon-platform-kick`, `syon-platform-twitch`, `syon-storage-toml`, `syon-engine` | Codex |
 | Contraste en vivo de Kick y Twitch (F2) | Pendiente: `syon login` de ambas, eventos reales y la línea de coste de EventSub | Nada de código; con la aplicación real | Autor |
 | Job de Windows de la CI con `syon` y los crates de plataformas | Pendiente de confirmar | Nada | Autor |
 | TTS (F4) | Sin empezar; su ADR de motor y su diseño son independientes de F3 | Solo documentación hasta que se acepte | |

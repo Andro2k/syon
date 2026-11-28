@@ -151,14 +151,16 @@ Los filtros de entrada son reglas configuradas, evaluadas antes del parser y en 
 Una regla puede descartar un mensaje o impedir comandos. En F3 los filtros no borran mensajes,
 sancionan usuarios ni responden explicando el rechazo. El chat original permanece visible en el bus.
 
-El antispam opera localmente por plataforma y cuenta, con límites configurables de ejecuciones por
-comando y un enfriamiento mínimo entre respuestas idénticas. Los valores iniciales son un intervalo de
-5 segundos por usuario y comando, 5 segundos entre respuestas idénticas por plataforma, 1 respuesta
-automatizada por segundo por plataforma y una ventana de 10 segundos para mensajes duplicados; los
-límites de Twitch y Kick siguen aplicándose en el servidor y sus rechazos no se reintentan. Un rechazo
-por antispam es silencioso para no amplificar spam. Los contadores usan reloj monotónico, vencen solos
-y tienen tamaño máximo; reiniciar SYON los reinicia. No se limita el mensaje escrito manualmente por
-la persona operadora en esta parte.
+El antispam opera localmente por plataforma de destino y cuenta, con límites configurables de
+ejecuciones por comando y un enfriamiento mínimo entre respuestas idénticas. Cuando una respuesta
+tiene varios destinos, se omiten individualmente los destinos cuyo límite esté activo y se envía a los
+restantes; si ninguno está disponible, no se envía. Los valores iniciales son un intervalo de 5 segundos
+por usuario y comando, 5 segundos entre respuestas idénticas por plataforma de destino, 1 respuesta
+automatizada por segundo por plataforma de destino y una ventana de 10 segundos para mensajes
+duplicados; los límites de Twitch y Kick siguen aplicándose en el servidor y sus rechazos no se reintentan.
+Un rechazo por antispam es silencioso para no amplificar spam. Los contadores usan reloj monotónico,
+vencen solos y tienen tamaño máximo; reiniciar SYON los reinicia. No se limita el mensaje escrito
+manualmente por la persona operadora en esta parte.
 
 ## 8. Configuración y persistencia
 

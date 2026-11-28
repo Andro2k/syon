@@ -80,12 +80,6 @@ impl ChatAutomation {
         }) {
             return None;
         }
-        let index = platform_index(event.platform);
-        if self.last_send[index].is_some_and(|at| {
-            now.duration_since(at) < Duration::from_secs(settings.platform_interval_seconds)
-        }) {
-            return None;
-        }
         let mut text = command
             .response
             .replace("{user}", &message.author.name)
@@ -102,26 +96,45 @@ impl ChatAutomation {
             return None;
         }
         let response_key = text.to_lowercase();
-        if self.response_cooldowns.iter().any(|(platform, value, at)| {
-            *platform == event.platform
-                && value == &response_key
-                && now.duration_since(*at) < Duration::from_secs(settings.response_cooldown_seconds)
-        }) {
-            return None;
-        }
-        self.cooldowns
-            .push_back((event.platform, user_key, command_key, now));
-        self.response_cooldowns
-            .push_back((event.platform, response_key, now));
-        while self.response_cooldowns.len() > MAX_TRACKED {
-            self.response_cooldowns.pop_front();
-        }
-        self.last_send[index] = Some(now);
-        let platforms = if command.destinations.is_empty() {
+        let destinations = if command.destinations.is_empty() {
             vec![event.platform]
         } else {
             command.destinations.clone()
         };
+        let platforms: Vec<_> = destinations
+            .into_iter()
+            .filter(|platform| {
+                let index = platform_index(*platform);
+                let interval_elapsed = self.last_send[index].is_none_or(|at| {
+                    now.duration_since(at)
+                        >= Duration::from_secs(settings.platform_interval_seconds)
+                });
+                let response_elapsed =
+                    !self
+                        .response_cooldowns
+                        .iter()
+                        .any(|(recent_platform, value, at)| {
+                            *recent_platform == *platform
+                                && value == &response_key
+                                && now.duration_since(*at)
+                                    < Duration::from_secs(settings.response_cooldown_seconds)
+                        });
+                interval_elapsed && response_elapsed
+            })
+            .collect();
+        if platforms.is_empty() {
+            return None;
+        }
+        self.cooldowns
+            .push_back((event.platform, user_key, command_key, now));
+        for platform in &platforms {
+            self.response_cooldowns
+                .push_back((*platform, response_key.clone(), now));
+            self.last_send[platform_index(*platform)] = Some(now);
+        }
+        while self.response_cooldowns.len() > MAX_TRACKED {
+            self.response_cooldowns.pop_front();
+        }
         Some(ChatResponse { platforms, text })
     }
 
@@ -554,6 +567,42 @@ mod tests {
             automation
                 .process(&settings, &second, now + Duration::from_secs(6))
                 .is_some()
+        );
+    }
+
+    #[test]
+    fn enfriamientos_se_aplican_en_la_plataforma_de_destino() {
+        let now = Instant::now();
+        let mut settings = ChatSettings {
+            duplicate_window_seconds: 1,
+            platform_interval_seconds: 1,
+            response_cooldown_seconds: 5,
+            ..ChatSettings::default()
+        };
+        let mut configured = command(MinimumChatRole::Everyone);
+        configured.destinations = vec![Platform::Kick];
+        configured.response = "respuesta fija".into();
+        settings.commands.push(configured);
+        let mut automation = ChatAutomation::default();
+
+        let first = event("!saluda", "first", ChatRoles::default());
+        assert_eq!(
+            automation
+                .process(&settings, &first, now)
+                .unwrap()
+                .platforms,
+            vec![Platform::Kick]
+        );
+
+        let mut second = event("!saluda", "second", ChatRoles::default());
+        second.platform = Platform::Kick;
+        if let EventKind::Chat(message) = &mut second.kind {
+            message.author_id = Some("43".into());
+        }
+        assert!(
+            automation
+                .process(&settings, &second, now + Duration::from_secs(2))
+                .is_none()
         );
     }
 }
