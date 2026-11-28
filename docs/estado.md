@@ -61,7 +61,7 @@ parche aplicado. La columna «Responsable» la rellena quien coordina; vacía si
 | Comandos, filtros y antispam (F3, parte 2) | Implementado en 5 parches de código; límites corregidos para aplicarse por destino; falta confirmar en vivo la forma de los campos opcionales del feed de Kick | `syon-domain`, `syon-app`, `syon-platform-kick`, `syon-platform-twitch`, `syon-storage-toml`, `syon-engine` | Codex |
 | Contraste en vivo de Kick y Twitch (F2) | Pendiente: `syon login` de ambas, eventos reales y la línea de coste de EventSub | Nada de código; con la aplicación real | Autor |
 | Job de Windows de la CI con `syon` y los crates de plataformas | Pendiente de confirmar | Nada | Autor |
-| TTS (F4) | ADR-0021 (motores como procesos externos) propuesto, pendiente de aceptación; el diseño 006 viene en el parche siguiente | Solo `docs/adr/` (0021), `docs/designs/` (006) y mi fila de este archivo; sin código hasta que se acepten | Claude |
+| TTS (F4) | ADR-0021 (motores como procesos externos) propuesto, pendiente de aceptación; [diseño 006](designs/006-tts.md) propuesto, pendiente de aceptación | Solo `docs/adr/` (0021), `docs/designs/` (006) y mi fila de este archivo; sin código hasta que se acepten | Claude |
 
 **Archivos que varios frentes tocan** y donde hay que tener más cuidado: `Cargo.toml` y `Cargo.lock`
 (regenerar con `cargo check --workspace --offline`, nunca `cargo update`; si hay conflicto, descartar el
