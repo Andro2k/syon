@@ -1,5 +1,5 @@
 use serde_json::Value;
-use syon_domain::{ChatMessage, EventKind, MessageId, User};
+use syon_domain::{ChatMessage, ChatRoles, EventKind, MessageId, User};
 
 /// Nombre con el que se publica a quien regala suscripciones de forma anónima.
 const ANONYMOUS: &str = "Anónimo";
@@ -12,19 +12,34 @@ const ANONYMOUS: &str = "Anónimo";
 /// [`EventKind::Unknown`], con el nombre de la suscripción (y el tipo de aviso si es un aviso de
 /// chat).
 pub fn event_from_notification(message: &Value) -> Option<EventKind> {
+    event_from_notification_for_user(message, None)
+}
+
+/// Traduce una notificación y compara el autor con el usuario autenticado.
+pub(crate) fn event_from_notification_for_user(
+    message: &Value,
+    self_user_id: Option<&str>,
+) -> Option<EventKind> {
     if message["metadata"]["message_type"].as_str()? != "notification" {
         return None;
     }
     let subscription_type = message["metadata"]["subscription_type"]
         .as_str()
         .or_else(|| message["payload"]["subscription"]["type"].as_str())?;
-    translate(subscription_type, &message["payload"]["event"])
+    translate_for_user(
+        subscription_type,
+        &message["payload"]["event"],
+        self_user_id,
+    )
 }
 
-/// Traduce un evento por el nombre de su suscripción y sus datos.
-fn translate(subscription_type: &str, event: &Value) -> Option<EventKind> {
+fn translate_for_user(
+    subscription_type: &str,
+    event: &Value,
+    self_user_id: Option<&str>,
+) -> Option<EventKind> {
     let known = match subscription_type {
-        "channel.chat.message" => chat(event),
+        "channel.chat.message" => chat(event, self_user_id),
         "channel.chat.message_delete" => message_deleted(event),
         "channel.ban" => user_banned(event),
         "channel.chat.notification" => return chat_notification(event),
@@ -67,10 +82,33 @@ fn person(event: &Value, prefix: &str) -> Option<User> {
         .map(User::new)
 }
 
-fn chat(e: &Value) -> Option<EventKind> {
+fn chat(e: &Value, self_user_id: Option<&str>) -> Option<EventKind> {
+    let author_id = text(e, &["chatter_user_id"]);
+    let broadcaster_id = text(e, &["broadcaster_user_id"]);
+    let badges = e["badges"].as_array();
+    let has = |role: &str| {
+        badges.is_some_and(|badges| badges.iter().any(|badge| badge["set_id"] == role))
+    };
+    let roles = ChatRoles {
+        broadcaster: has("broadcaster")
+            || broadcaster_id
+                .as_deref()
+                .zip(author_id.as_deref())
+                .is_some_and(|(broadcaster_id, author_id)| broadcaster_id == author_id),
+        moderator: has("moderator"),
+        vip: has("vip"),
+        subscriber: has("subscriber"),
+    };
+    let is_self = author_id
+        .as_deref()
+        .zip(self_user_id)
+        .map(|(author_id, self_id)| author_id == self_id);
     Some(EventKind::Chat(ChatMessage {
         id: MessageId::new(text(e, &["message_id"])?),
         author: person(e, "chatter_user")?,
+        author_id,
+        roles,
+        is_self,
         text: text(e, &["message", "text"])?,
     }))
 }
@@ -201,9 +239,89 @@ mod tests {
             Some(EventKind::Chat(ChatMessage {
                 id: MessageId::new("cc106a89-1814-919d-454c-f4f2f970aae7"),
                 author: user("Viewer32"),
+                author_id: Some("4145994".to_owned()),
+                roles: ChatRoles::default(),
+                is_self: None,
                 text: "Hi chat".to_owned(),
             }))
         );
+    }
+
+    #[test]
+    fn un_mensaje_de_chat_mapea_roles_id_y_cuenta_propia() {
+        let event = json!({
+            "broadcaster_user_id": "13",
+            "chatter_user_id": "42",
+            "chatter_user_name": "Ana",
+            "message_id": "m-1",
+            "message": { "text": "!hola" },
+            "badges": [
+                { "set_id": "moderator", "id": "1", "info": "" },
+                { "set_id": "vip", "id": "1", "info": "" },
+                { "set_id": "subscriber", "id": "12", "info": "16" }
+            ]
+        });
+        let notification = json!({
+            "metadata": { "message_type": "notification", "subscription_type": "channel.chat.message" },
+            "payload": { "event": event }
+        });
+
+        assert_eq!(
+            event_from_notification_for_user(&notification, Some("42")),
+            Some(EventKind::Chat(ChatMessage {
+                id: MessageId::new("m-1"),
+                author: user("Ana"),
+                author_id: Some("42".to_owned()),
+                roles: ChatRoles {
+                    broadcaster: false,
+                    moderator: true,
+                    vip: true,
+                    subscriber: true,
+                },
+                is_self: Some(true),
+                text: "!hola".to_owned(),
+            }))
+        );
+    }
+
+    #[test]
+    fn chatter_igual_al_broadcaster_recibe_rol_aunque_no_tenga_badge() {
+        let event = json!({
+            "broadcaster_user_id": "42",
+            "chatter_user_id": "42",
+            "chatter_user_name": "Ana",
+            "message_id": "m-1",
+            "message": { "text": "hola" },
+            "badges": []
+        });
+        let notification = json!({
+            "metadata": { "message_type": "notification", "subscription_type": "channel.chat.message" },
+            "payload": { "event": event }
+        });
+        let Some(EventKind::Chat(message)) =
+            event_from_notification_for_user(&notification, Some("42"))
+        else {
+            panic!("debía ser un chat");
+        };
+
+        assert!(message.roles.broadcaster);
+        assert!(message.is_self.unwrap());
+    }
+
+    #[test]
+    fn ids_ausentes_no_otorgan_rol_de_broadcaster() {
+        let event = json!({
+            "chatter_user_name": "Ana",
+            "message_id": "m1",
+            "message": { "text": "hola" }
+        });
+        let Some(EventKind::Chat(message)) = translate_event("channel.chat.message", event) else {
+            panic!("debía ser un chat");
+        };
+
+        assert_eq!(message.roles, ChatRoles::default());
+        assert_eq!(message.author_id, None);
+        assert_eq!(message.is_self, None);
     }
 
     #[test]

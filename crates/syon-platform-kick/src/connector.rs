@@ -1,7 +1,7 @@
 use crate::{
     clock::now,
     error::ConnectError,
-    events::event_from_publication,
+    events::event_from_publication_with_user_id,
     frames::{
         CONNECT_ID, Channel, DEFAULT_PING, FIRST_SUBSCRIBE_ID, Inbound, centrifugo_url,
         channel_from_json, classify, feed_names, is_terminal,
@@ -323,7 +323,7 @@ async fn session(
                         Inbound::SubscribeFailed { feed, message } => {
                             log::warn!("kick: no se pudo suscribir a {feed}: {message}");
                         }
-                        Inbound::Publication { data, .. } => publish(ctx, &data),
+                        Inbound::Publication { data, .. } => publish(ctx, &data, channel.id),
                         Inbound::Disconnect { code, reason } => {
                             log::warn!("kick: el servidor pidió desconectar: {reason}");
                             return Ok(Some(code));
@@ -343,9 +343,10 @@ async fn session(
 }
 
 /// Traduce una publicación y la entrega al sumidero. Una que no se entiende se descarta.
-fn publish(ctx: &Context, data: &Value) {
+fn publish(ctx: &Context, data: &Value, self_user_id: u64) {
     let received_at = now();
-    let Some(kind) = event_from_publication(data, received_at) else {
+    let Some(kind) = event_from_publication_with_user_id(data, received_at, Some(self_user_id))
+    else {
         return;
     };
     if let EventKind::Unknown { name } = &kind {

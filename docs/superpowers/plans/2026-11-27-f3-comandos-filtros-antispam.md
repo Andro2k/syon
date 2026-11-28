@@ -44,10 +44,10 @@
 
 **Interface:** `ChatRoles { broadcaster, moderator, vip, subscriber }`; `ChatMessage` gains `author_id: Option<String>`, `roles: ChatRoles` and `is_self: Option<bool>`.
 
-- [ ] Add tests for Twitch badge-to-role mapping, broadcaster id, author id and own-user comparison; add Kick tests for optional documented user id and known badges, and unknown values.
-- [ ] Run each affected adapter test and observe the expected compile/assertion failure.
-- [ ] Implement the model and tolerant translators; Twitch receives its validated `user_id` from the connector. Kick never guesses a missing role or identity.
-- [ ] Run domain and both adapter test suites.
+- [x] Add tests for Twitch badge-to-role mapping, broadcaster id, author id and own-user comparison; add Kick tests for optional documented user id and known badges, and unknown values.
+- [x] Run each affected adapter test and observe the expected compile/assertion failure.
+- [x] Implement the model and tolerant translators; Twitch receives its validated `user_id` from the connector. Kick never guesses a missing role or identity.
+- [x] Run domain and both adapter test suites.
 
 ### Task 3: Add application settings models
 

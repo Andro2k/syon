@@ -2,7 +2,7 @@ use crate::{
     api::{CreatedSubscription, TwitchApi},
     clock::now,
     error::{ApiError, ConnectError},
-    events::event_from_notification,
+    events::event_from_notification_for_user,
     messages::{Dedup, Inbound, classify},
     session::TokenManager,
     subscriptions::subscription_requests,
@@ -225,7 +225,7 @@ async fn session(ctx: &Context, backoff: &mut Backoff) -> Result<Option<u16>, St
     ctx.shared.set(ConnectionStatus::Connected);
     backoff.reset();
 
-    read_events(ctx, socket, welcome.keepalive).await
+    read_events(ctx, socket, welcome.keepalive, &info.user_id).await
 }
 
 /// Lee los mensajes hasta que la conexión se cierra o falla. En un `session_reconnect` abre la
@@ -234,6 +234,7 @@ async fn read_events(
     ctx: &Context,
     mut socket: Socket,
     mut keepalive: Duration,
+    self_user_id: &str,
 ) -> Result<Option<u16>, String> {
     let mut dedup = Dedup::default();
     loop {
@@ -257,14 +258,14 @@ async fn read_events(
                     continue;
                 };
                 match classify(&value) {
-                    Inbound::Notification => deliver(ctx, &mut dedup, &value),
+                    Inbound::Notification => deliver(ctx, &mut dedup, &value, self_user_id),
                     Inbound::Reconnect { url } => {
                         log::info!("twitch: Twitch pidió cambiar de conexión");
                         let (new_socket, welcome) = open(&url, &ctx.timing).await?;
                         // La conexión vieja recibe eventos hasta que la nueva dé la bienvenida:
                         // se vacía antes de soltarla.
                         let mut old = std::mem::replace(&mut socket, new_socket);
-                        drain(ctx, &mut dedup, &mut old).await;
+                        drain(ctx, &mut dedup, &mut old, self_user_id).await;
                         keepalive = welcome.keepalive;
                     }
                     Inbound::Revocation {
@@ -290,7 +291,7 @@ async fn read_events(
 
 /// Lee lo que quede en la conexión vieja, hasta que se cierre o pase `drain_timeout`, y publica sus
 /// notificaciones.
-async fn drain(ctx: &Context, dedup: &mut Dedup, socket: &mut Socket) {
+async fn drain(ctx: &Context, dedup: &mut Dedup, socket: &mut Socket, self_user_id: &str) {
     let drained = time::timeout(ctx.timing.drain_timeout, async {
         while let Some(Ok(frame)) = socket.next().await {
             match frame {
@@ -298,7 +299,7 @@ async fn drain(ctx: &Context, dedup: &mut Dedup, socket: &mut Socket) {
                     if let Ok(value) = serde_json::from_str::<Value>(&text)
                         && classify(&value) == Inbound::Notification
                     {
-                        deliver(ctx, dedup, &value);
+                        deliver(ctx, dedup, &value, self_user_id);
                     }
                 }
                 Message::Close(_) => break,
@@ -358,12 +359,12 @@ async fn open(url: &str, timing: &Timing) -> Result<(Socket, Welcome), String> {
 }
 
 /// Traduce una notificación y la entrega al sumidero, salvo que sea una entrega repetida.
-fn deliver(ctx: &Context, dedup: &mut Dedup, message: &Value) {
+fn deliver(ctx: &Context, dedup: &mut Dedup, message: &Value, self_user_id: &str) {
     if dedup.is_repeat(message) {
         log::debug!("twitch: notificación repetida descartada");
         return;
     }
-    let Some(kind) = event_from_notification(message) else {
+    let Some(kind) = event_from_notification_for_user(message, Some(self_user_id)) else {
         return;
     };
     if let EventKind::Unknown { name } = &kind {
@@ -579,6 +580,9 @@ mod tests {
         EventKind::Chat(ChatMessage {
             id: MessageId::new(id),
             author: User::new("Ana"),
+            author_id: None,
+            roles: syon_domain::ChatRoles::default(),
+            is_self: None,
             text: text.to_owned(),
         })
     }

@@ -22,6 +22,9 @@ mantiene la conexión por WebSocket. Sigue la estructura de
 - Todo campo se lee de forma tolerante ([ADR-0013](../../docs/adr/0013-json-tolerante-en-adaptadores.md)).
   Un evento desconocido o con campos obligatorios ausentes llega como `EventKind::Unknown { name }`,
   con el nombre de la suscripción (y `:tipo_de_aviso` en los avisos de chat), sin su contenido.
+- En los mensajes de chat conserva `chatter_user_id`, deriva broadcaster, moderator, VIP y suscriptor
+  de los ids y `badges[].set_id`, y compara el autor con el usuario EventSub para marcar los ecos
+  propios.
 
 ### OAuth ([ADR-0016](../../docs/adr/0016-oauth-y-api-de-twitch.md))
 

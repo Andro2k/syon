@@ -90,7 +90,7 @@ pub fn format_event(event: &Event) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use syon_domain::{ChatMessage, MessageId, User};
+    use syon_domain::{ChatMessage, ChatRoles, MessageId, User};
 
     fn event(kind: EventKind) -> Event {
         Event {
@@ -105,6 +105,9 @@ mod tests {
         EventKind::Chat(ChatMessage {
             id: MessageId::new("m1"),
             author: User::new("ana"),
+            author_id: None,
+            roles: ChatRoles::default(),
+            is_self: None,
             text: text.to_owned(),
         })
     }

@@ -8,7 +8,7 @@ mod platform;
 mod timestamp;
 mod user;
 
-pub use event::{ChatMessage, Event, EventKind, MessageId};
+pub use event::{ChatMessage, ChatRoles, Event, EventKind, MessageId};
 pub use platform::Platform;
 pub use timestamp::Timestamp;
 pub use user::User;

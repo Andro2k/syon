@@ -17,6 +17,19 @@ impl MessageId {
     }
 }
 
+/// Permisos conocidos del autor del mensaje en el canal de origen.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct ChatRoles {
+    /// El autor es quien transmite el canal.
+    pub broadcaster: bool,
+    /// El autor puede moderar el chat.
+    pub moderator: bool,
+    /// El autor es VIP.
+    pub vip: bool,
+    /// El autor está suscrito.
+    pub subscriber: bool,
+}
+
 /// Mensaje escrito en el chat de una plataforma.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChatMessage {
@@ -24,6 +37,12 @@ pub struct ChatMessage {
     pub id: MessageId,
     /// Quien lo escribió.
     pub author: User,
+    /// Identificador estable del autor en la plataforma, si el evento lo incluye.
+    pub author_id: Option<String>,
+    /// Roles que la plataforma indicó para este autor.
+    pub roles: ChatRoles,
+    /// `Some(true)` si es la cuenta propia, `Some(false)` si es otra y `None` si se desconoce.
+    pub is_self: Option<bool>,
     /// Texto del mensaje.
     pub text: String,
 }
@@ -115,8 +134,33 @@ mod tests {
         ChatMessage {
             id: MessageId::new(id),
             author: User::new("ana"),
+            author_id: None,
+            roles: ChatRoles::default(),
+            is_self: None,
             text: "hola".to_owned(),
         }
+    }
+
+    #[test]
+    fn chat_guarda_identidad_roles_y_conocimiento_de_autoria() {
+        let message = ChatMessage {
+            id: MessageId::new("m1"),
+            author: User::new("ana"),
+            author_id: Some("42".to_owned()),
+            roles: ChatRoles {
+                broadcaster: false,
+                moderator: true,
+                vip: false,
+                subscriber: true,
+            },
+            is_self: Some(false),
+            text: "!hola".to_owned(),
+        };
+
+        assert_eq!(message.author_id.as_deref(), Some("42"));
+        assert!(message.roles.moderator);
+        assert!(message.roles.subscriber);
+        assert_eq!(message.is_self, Some(false));
     }
 
     #[test]
