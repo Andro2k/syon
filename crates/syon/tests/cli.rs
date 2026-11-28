@@ -65,7 +65,7 @@ fn login_sin_credenciales_nombra_las_variables_y_sale_con_1() {
 }
 
 /// Con carpetas vacías no hay plataformas activadas: dice qué archivo editar y sale con 1. Solo
-/// en sistemas donde las carpetas se pueden redirigir con variables de entorno (XDG).
+/// en Unix, donde `HOME` redirige la carpeta personal y con ella `~/.SYON` (ADR-0020).
 #[cfg(unix)]
 #[test]
 fn run_sin_plataformas_activadas_dice_que_archivo_editar_y_sale_con_1() {
@@ -74,9 +74,6 @@ fn run_sin_plataformas_activadas_dice_que_archivo_editar_y_sale_con_1() {
     let output = Command::new(env!("CARGO_BIN_EXE_syon"))
         .arg("run")
         .env("HOME", &root)
-        .env("XDG_CONFIG_HOME", root.join("config"))
-        .env("XDG_DATA_HOME", root.join("data"))
-        .env("XDG_CACHE_HOME", root.join("cache"))
         .output()
         .unwrap();
     let err = text(&output.stderr);
@@ -87,7 +84,7 @@ fn run_sin_plataformas_activadas_dice_que_archivo_editar_y_sale_con_1() {
 }
 
 /// Twitch activado y sin credenciales de la aplicación: no arranca, nombra las variables (no sus
-/// valores) y, al no haber nada en marcha, sale con 1. Solo en sistemas con carpetas XDG.
+/// valores) y, al no haber nada en marcha, sale con 1. Solo en Unix, donde `HOME` redirige `~/.SYON`.
 #[cfg(unix)]
 #[test]
 fn run_con_twitch_sin_credenciales_nombra_las_variables_y_sale_con_1() {
@@ -97,18 +94,15 @@ fn run_con_twitch_sin_credenciales_nombra_las_variables_y_sale_con_1() {
     }
     let root = std::env::temp_dir().join(format!("syon-bin-twitch-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&root);
-    std::fs::create_dir_all(root.join("config/syon")).unwrap();
+    std::fs::create_dir_all(root.join(".SYON/config")).unwrap();
     std::fs::write(
-        root.join("config/syon/settings.toml"),
+        root.join(".SYON/config/settings.toml"),
         "[twitch]\nenabled = true\n",
     )
     .unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_syon"))
         .arg("run")
         .env("HOME", &root)
-        .env("XDG_CONFIG_HOME", root.join("config"))
-        .env("XDG_DATA_HOME", root.join("data"))
-        .env("XDG_CACHE_HOME", root.join("cache"))
         .env_remove("SYON_TWITCH_CLIENT_ID")
         .env_remove("SYON_TWITCH_CLIENT_SECRET")
         .output()

@@ -15,6 +15,10 @@ el trabajo sin depender de una conversación.
 - Parche de conexión: `Engine::start` lee los ajustes con `syon-storage-toml`, aparta un archivo inválido
   como `settings.toml.invalid` sin guardar nada encima, inicia el registro con el nivel de los ajustes y
   crea el bus ([ADR-0010](adr/0010-arranque-del-engine.md)).
+- Rutas: desde el 2026-11-27 todo cuelga de `~/.SYON/{config,data,cache}` en Linux y Windows, con la
+  carpeta personal de `std::env::home_dir` y sin `etcetera` ([ADR-0020](adr/0020-carpeta-personal-punto-syon.md),
+  que reemplaza al ADR-0009). No hay migración automática: quien tenga archivos en `%APPDATA%\SYON` o en
+  `~/.config/syon` y `~/.local/share/syon` los mueve a mano.
 - Siguiente: **F2 (plataformas)** en curso. El [diseño 002](designs/002-plataformas-kick-twitch.md) está
   aceptado (2026-11-26) y se implementa con su plan de la sección 12, un parche por vez. Hecho: el diseño,
   `EventKind::Followed`, los puertos de `syon-app` (`PlatformConnector`, `ConnectionStatus`, `Backoff` y

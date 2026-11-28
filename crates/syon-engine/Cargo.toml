@@ -16,7 +16,6 @@ syon-storage-credentials.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "time"] }
 log.workspace = true
 env_logger.workspace = true
-etcetera.workspace = true
 
 [lints]
 workspace = true

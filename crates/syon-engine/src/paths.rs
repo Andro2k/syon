@@ -1,16 +1,13 @@
-use etcetera::{
-    HomeDirError,
-    app_strategy::{AppStrategy, AppStrategyArgs, choose_app_strategy},
-};
 use std::{
+    env,
     error::Error,
     fmt,
     path::{Path, PathBuf},
 };
 
-/// Nombre de la carpeta de SYON dentro de las carpetas del sistema. En Windows se usa tal cual
-/// (`SYON`) y en Linux `etcetera` lo pasa a minúsculas (`syon`).
-const APP_NAME: &str = "SYON";
+/// Carpeta de SYON dentro de la carpeta personal del usuario, la misma en todos los sistemas
+/// (ADR-0020). En Windows es una carpeta visible: el punto es solo parte del nombre.
+const APP_DIR: &str = ".SYON";
 const SETTINGS_FILE: &str = "settings.toml";
 const LOG_FILE: &str = "syon.log";
 const CREDENTIALS_FILE: &str = "credentials.toml";
@@ -29,20 +26,21 @@ pub struct AppPaths {
 }
 
 impl AppPaths {
-    /// Resuelve las carpetas según las convenciones del sistema operativo (ADR-0009).
+    /// Resuelve las carpetas bajo `~/.SYON` (`config`, `data` y `cache`), con `~` la carpeta
+    /// personal que da el sistema (`HOME` o `USERPROFILE`; ADR-0020). No crea nada.
     pub fn from_system() -> Result<Self, PathsError> {
-        let strategy = choose_app_strategy(AppStrategyArgs {
-            top_level_domain: String::new(),
-            author: String::new(),
-            app_name: APP_NAME.to_owned(),
-        })
-        .map_err(PathsError::from)?;
-        Ok(Self {
-            config_dir: strategy.config_dir(),
-            data_dir: strategy.data_dir(),
-            cache_dir: strategy.cache_dir(),
-            home_dir: Some(strategy.home_dir().to_path_buf()),
-        })
+        Self::from_home(env::home_dir())
+    }
+
+    /// Reparte las carpetas bajo `home/.SYON`. Una carpeta personal ausente o relativa es un
+    /// error: una ruta relativa dejaría los archivos donde esté el directorio de trabajo.
+    fn from_home(home: Option<PathBuf>) -> Result<Self, PathsError> {
+        let home = home
+            .filter(|home| home.is_absolute())
+            .ok_or(PathsError::HomeDirUnavailable)?;
+        let mut paths = Self::under(home.join(APP_DIR));
+        paths.home_dir = Some(home);
+        Ok(paths)
     }
 
     /// Reparte las tres carpetas bajo `root` (`config`, `data` y `cache`), sin consultar el
@@ -98,14 +96,8 @@ impl AppPaths {
 /// No se pudieron determinar las carpetas del sistema.
 #[derive(Debug)]
 pub enum PathsError {
-    /// El sistema no indica cuál es la carpeta personal del usuario.
+    /// El sistema no indica una carpeta personal del usuario, o no es una ruta absoluta.
     HomeDirUnavailable,
-}
-
-impl From<HomeDirError> for PathsError {
-    fn from(_: HomeDirError) -> Self {
-        Self::HomeDirUnavailable
-    }
 }
 
 impl fmt::Display for PathsError {
@@ -165,43 +157,34 @@ mod tests {
         assert!(message.contains("carpeta personal"));
     }
 
-    /// En Linux la configuración, los datos y la caché siguen XDG: las variables
-    /// `XDG_*_HOME` si son rutas absolutas y, si no, las carpetas bajo `$HOME`.
-    #[cfg(target_os = "linux")]
+    /// En todos los sistemas las tres carpetas cuelgan de `~/.SYON` (ADR-0020).
     #[test]
-    fn en_linux_las_carpetas_siguen_xdg() {
-        fn base(variable: &str, fallback: &str) -> PathBuf {
-            match env::var_os(variable).map(PathBuf::from) {
-                Some(path) if path.is_absolute() => path,
-                _ => PathBuf::from(env::var_os("HOME").unwrap()).join(fallback),
-            }
-        }
+    fn las_carpetas_del_sistema_cuelgan_de_punto_syon_en_la_carpeta_personal() {
+        let home = env::home_dir().unwrap();
         let paths = AppPaths::from_system().unwrap();
-        assert_eq!(
-            paths.config_dir(),
-            base("XDG_CONFIG_HOME", ".config").join("syon")
-        );
-        assert_eq!(
-            paths.data_dir(),
-            base("XDG_DATA_HOME", ".local/share").join("syon")
-        );
-        assert_eq!(
-            paths.cache_dir(),
-            base("XDG_CACHE_HOME", ".cache").join("syon")
-        );
+        let root = home.join(".SYON");
+        assert_eq!(paths.config_dir(), root.join("config"));
+        assert_eq!(paths.data_dir(), root.join("data"));
+        assert_eq!(paths.cache_dir(), root.join("cache"));
+        assert_eq!(paths.home_dir(), Some(home.as_path()));
     }
 
-    /// En Windows la configuración y los datos viven en `%APPDATA%` (Roaming) y la caché en
-    /// `%LOCALAPPDATA%`, dentro de una carpeta `SYON` (ADR-0009). Solo corre en Windows (CI).
-    #[cfg(windows)]
     #[test]
-    fn en_windows_las_carpetas_corresponden_a_appdata_y_localappdata() {
-        let roaming = PathBuf::from(env::var_os("APPDATA").unwrap());
-        let local = PathBuf::from(env::var_os("LOCALAPPDATA").unwrap());
-        let paths = AppPaths::from_system().unwrap();
-        assert_eq!(paths.config_dir(), roaming.join("SYON").join("config"));
-        assert_eq!(paths.data_dir(), roaming.join("SYON").join("data"));
-        assert_eq!(paths.cache_dir(), local.join("SYON").join("cache"));
+    fn from_home_reparte_las_carpetas_bajo_punto_syon_y_guarda_la_carpeta_personal() {
+        let home = env::temp_dir();
+        let paths = AppPaths::from_home(Some(home.clone())).unwrap();
+        assert_eq!(paths, {
+            let mut esperado = AppPaths::under(home.join(".SYON"));
+            esperado.home_dir = Some(home);
+            esperado
+        });
+    }
+
+    #[test]
+    fn sin_carpeta_personal_o_con_una_relativa_es_un_error() {
+        assert!(AppPaths::from_home(None).is_err());
+        assert!(AppPaths::from_home(Some(PathBuf::from("relativa/casa"))).is_err());
+        assert!(AppPaths::from_home(Some(PathBuf::new())).is_err());
     }
 
     #[test]

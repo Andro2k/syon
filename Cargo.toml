@@ -23,8 +23,6 @@ tokio = { version = "1", default-features = false, features = ["sync"] }
 log = "0.4"
 # Registro a consola y archivo (ADR-0006); con sus funciones por defecto, que traen jiff y regex.
 env_logger = "0.11"
-# Carpetas del sistema (ADR-0009); se eligió en lugar de dirs, que arrastra option-ext (MPL-2.0).
-etcetera = "0.11"
 # Formato de settings.toml (ADR-0008): solo lo usa syon-storage-toml; syon-app no depende de serde.
 serde = { version = "1", features = ["derive"] }
 # Interpretación tolerante de los datos de las plataformas (ADR-0013): solo los adaptadores lo usan.
